@@ -1,9 +1,8 @@
-// ds-sense 產出 — B. 三步建立分析（Wizard：漸層底＋白卡＋圓點步驟＋灰上一步／主色下一步）
+// ds-sense 產出 — B. 四步建立分析（Wizard：白卡＋圓點步驟＋灰上一步／主色下一步）
 import { html, raw, on, $, $$, fmtSize, MB, announce } from '../core/dom.js';
 import { wizard, DEFAULT_SETTINGS } from '../core/store.js';
 import { navigate } from '../core/router.js';
 import { createAnalysis } from '../services/mock-service.js';
-import { DEMO_DATASET } from '../data/seed.js';
 import { INDUSTRIES, matchClients, PROJECT_NAME_RE } from '../data/industries.js';
 import { pageHead } from './ui.js';
 import { icon } from './icons.js';
@@ -16,7 +15,7 @@ export const LIMITS = {
   keyword: { maxFiles: 1, maxTotal: 10 * MB, label: '1 份 CSV／XLSX，10 MB 以內' },
 };
 const EXT_OK = /\.(csv|xlsx)$/i;
-const STEPS = ['專案基本資訊', '資料', '確認'];
+const STEPS = ['專案基本資訊', '資料', '分析組數', '確認'];
 
 // ───────── 驗證 ─────────
 
@@ -53,8 +52,6 @@ export function checkFiles(files, limit) {
 }
 
 function validateStep2(d) {
-  const kw0 = wizard.keywordFiles.length ? checkFiles(wizard.keywordFiles, LIMITS[d.mode]) : { ok: true };
-  if (d.source === 'demo') return { ok: kw0.ok, kw: kw0 };
   const art = checkFiles(wizard.files, LIMITS[d.mode]);
   const kw = wizard.keywordFiles.length ? checkFiles(wizard.keywordFiles, LIMITS[d.mode]) : { ok: true };
   return { ok: art.ok && kw.ok, art, kw, missing: wizard.files.length === 0 };
@@ -63,14 +60,15 @@ function validateStep2(d) {
 function firstInvalidStep(d) {
   if (Object.keys(validateStep1(d)).length) return 1;
   if (!validateStep2(d).ok) return 2;
-  return 3;
+  if (!validateStep3(d).ok) return 3;
+  return 4;
 }
 
 // ───────── Render ─────────
 
 export function renderCreate(root, { params }) {
   const d = wizard.draft;
-  let step = Math.min(Math.max(Number(params.step) || 1, 1), 3);
+  let step = Math.min(Math.max(Number(params.step) || 1, 1), 4);
   // 不允許跳過未完成的步驟
   const reachable = firstInvalidStep(d);
   if (step > reachable) { navigate(`/create/${reachable}`, {}, { replace: true }); return; }
@@ -82,7 +80,7 @@ export function renderCreate(root, { params }) {
     <div class="create-wrap">
       ${pageHead({
         title: '創建新檔',
-        desc: '依序完成專案基本資訊、資料與確認三個步驟。可以隨時回上一步，已輸入的內容會保留。',
+        desc: '依序完成專案基本資訊、資料、分析組數與確認四個步驟。可以隨時回上一步，已輸入的內容會保留。',
         crumbs: [{ label: '社群口碑分析', href: '#/' }, { label: '創建新檔' }],
       })}
       <ol class="stepper" aria-label="創建新檔步驟">
@@ -96,12 +94,12 @@ export function renderCreate(root, { params }) {
         })}
       </ol>
       <form class="wizard-card" novalidate data-step="${step}">
-        <div class="wizard-card__body">${step === 1 ? step1(d) : step === 2 ? step2(d) : step3(d)}</div>
+        <div class="wizard-card__body">${step === 1 ? step1(d) : step === 2 ? step2(d) : step === 3 ? step3(d) : step4(d)}</div>
         <div class="wizard-card__foot">
           ${step === 1
             ? html`<a class="btn btn--secondary" href="#/">返回社群口碑分析</a>`
             : html`<button type="button" class="btn btn--secondary" data-action="prev">${raw(icon('arrowLeft', { size: 16 }))}<span>上一步</span></button>`}
-          ${step < 3
+          ${step < 4
             ? html`<button type="submit" class="btn btn--primary" data-action="next">下一步${raw(icon('arrowRight', { size: 16 }))}</button>`
             : html`<button type="submit" class="btn btn--primary" data-action="start">開始分析</button>`}
         </div>
@@ -115,6 +113,7 @@ export function renderCreate(root, { params }) {
   if (step === 1) bindStep1(view, form);
   if (step === 2) bindStep2(view, form);
   if (step === 3) bindStep3(view, form);
+  if (step === 4) bindStep4(view, form);
 }
 
 // ───────── Step 1：專案基本資訊 ─────────
@@ -291,7 +290,7 @@ const PLATFORMS = {
 function step2(d) {
   return html`
     <h2 class="wizard-card__title wizard-card__title--brand">資料來源</h2>
-    <p class="wizard-card__desc">選擇文章資料的來源平台，再上傳該平台匯出的檔案。沒有檔案時，可以改用範本資料完整走一次流程。</p>
+    <p class="wizard-card__desc">選擇文章資料的來源平台，再上傳該平台匯出的檔案。</p>
     <fieldset class="fieldset">
       <legend class="field__label">資料來源 <span class="req" aria-hidden="true">*</span><span class="sr-only">（必填）</span></legend>
       <div class="choice-grid choice-grid--3">
@@ -305,25 +304,8 @@ function step2(d) {
         </div>`)}
       </div>
     </fieldset>
-    <div id="source-panel">${d.source === 'demo' ? demoPanel() : localPanel(d)}</div>
+    <div id="source-panel">${localPanel(d)}</div>
     <div id="keyword-panel">${keywordPanel(d)}</div>`;
-}
-
-function demoPanel() {
-  const f = (file, meta) => html`<li class="file-item file-item--ok">
-        <span class="file-item__type">XLSX</span>
-        <span class="file-item__main"><span class="file-item__name">${file.name}</span>
-          <span class="file-item__meta">${fmtSize(file.size)} · ${meta}</span></span>
-        <span class="file-item__status">${raw(icon('check', { size: 14 }))}可使用</span>
-      </li>`;
-  return html`<section class="subpanel" aria-label="範本資料內容">
-    <h3 class="subpanel__title">範本資料內容</h3>
-    <ul class="file-list">
-      ${f(DEMO_DATASET.articleFile, `社群文章 · ${DEMO_DATASET.note}`)}
-    </ul>
-    <p class="field__hint">範本為 OpView 匯出格式，無論選擇哪個來源平台都可使用。</p>
-    <button type="button" class="btn btn--secondary btn--sm" data-action="use-local">改為上傳本機檔案</button>
-  </section>`;
 }
 
 function localPanel(d) {
@@ -338,10 +320,8 @@ function localPanel(d) {
       <span class="dropzone__main">拖曳檔案到這裡，或<span class="dropzone__link">點選選擇檔案</span></span>
       <span class="dropzone__hint">CSV、XLSX · ${lim.maxFiles > 1 ? `最多 ${lim.maxFiles} 份` : '1 份'}</span>
     </label>
-    <input id="f-files" class="visually-hidden-input" type="file" accept=".csv,.xlsx" ${lim.maxFiles > 1 ? 'multiple' : ''} aria-describedby="file-check-note">
+    <input id="f-files" class="visually-hidden-input" type="file" accept=".csv,.xlsx" ${lim.maxFiles > 1 ? 'multiple' : ''}>
     <div id="file-results" aria-live="polite"></div>
-    <p class="field__help">沒有檔案？<button type="button" class="text-link text-link--btn text-link--inline" data-action="use-demo">改用範本資料（屈臣氏 2022Q4 測試資料）</button></p>
-    <p class="field__hint" id="file-check-note">${raw(icon('alert', { size: 14 }))} POC 只完成檔案基本檢查（副檔名、數量、大小），<strong>未解析 CSV／XLSX 內容與欄位</strong>；結果頁將以屈臣氏範本資料呈現。</p>
   </section>`;
 }
 
@@ -357,7 +337,6 @@ function keywordPanel(d) {
     </label>
     <input id="f-kw" class="visually-hidden-input" type="file" accept=".csv,.xlsx" ${LIMITS[wizard.draft.mode].maxFiles > 1 ? 'multiple' : ''}>
     <div id="kw-results" aria-live="polite"></div>
-    ${d.source === 'demo' ? html`<p class="field__hint">未上傳時，使用範本的自訂關鍵字（${DEMO_DATASET.keywordFile.name}，${fmtSize(DEMO_DATASET.keywordFile.size)}）。</p>` : ''}
   </section>`;
 }
 
@@ -411,15 +390,6 @@ function bindStep2(view, form) {
     wizard.update({ platform: el.value });
     $$('.choice-card', view).forEach((c) => { const i = $('input', c); if (i) c.classList.toggle('is-selected', i.value === el.value); });
   });
-  const renderPanel = (focusSel) => {
-    $('#source-panel', view).innerHTML = d.source === 'demo' ? demoPanel() : localPanel(d);
-    $('#keyword-panel', view).innerHTML = keywordPanel(d);
-    bindInputs();
-    renderLists();
-    if (focusSel) $(focusSel, view)?.focus();
-  };
-  on(view, 'click', '[data-action="use-local"]', () => { wizard.update({ source: 'local' }); renderPanel('.dropzone'); });
-  on(view, 'click', '[data-action="use-demo"]', () => { wizard.update({ source: 'demo' }); renderPanel('[data-action="use-local"]'); });
   // 自訂關鍵字：規則與文章檔完全相同（同樣的數量與大小限制）
   const addKeywordFiles = (picked) => {
     if (!picked.length) return;
@@ -459,7 +429,7 @@ function bindStep2(view, form) {
     const v = validateStep2(wizard.draft);
     if (!v.ok) {
       if (v.missing) {
-        $('#file-results', view).innerHTML = html`<p class="field__error field__error--block" role="alert">${raw(icon('alert', { size: 14 }))}<span>請選擇至少 1 份文章檔，或改用範本資料。</span></p>`;
+        $('#file-results', view).innerHTML = html`<p class="field__error field__error--block" role="alert">${raw(icon('alert', { size: 14 }))}<span>請選擇至少 1 份文章檔。</span></p>`;
       } else {
         renderLists();
       }
@@ -472,11 +442,106 @@ function bindStep2(view, form) {
   });
 }
 
-// ───────── Step 3：確認 ─────────
+// ───────── Step 3：分析組數 ─────────
+
+const ANALYSIS_OPTIONS = {
+  content: [['', '請選擇'], ['main', '主文'], ['reply', '回文'], ['both', '主文和回文']],
+  clusterCount: [['', '請選擇'], ['6', '6'], ['10', '10'], ['12', '12'], ['15', '15']],
+  sentiment: [['', '不設定'], ['positive', '正面'], ['negative', '負面'], ['neutral', '中立']],
+  keywordPos: [['', '不設定'], ['noun', '名詞'], ['verb', '動詞'], ['adjective', '形容詞']],
+};
+const ANALYSIS_LABELS = Object.fromEntries(Object.entries(ANALYSIS_OPTIONS).map(([key, options]) => [key, Object.fromEntries(options)]));
+
+function validateStep3(d) {
+  const count = Math.min(Math.max(Number(d.analysisGroupCount) || 1, 1), 3);
+  const missing = [];
+  for (let i = 0; i < count; i += 1) {
+    if (!d.analysisGroups?.[i]?.clusterCount) missing.push(i);
+  }
+  return { ok: missing.length === 0, missing };
+}
+
+function analysisSelect(name, row, value, options, { required = false } = {}) {
+  const id = `f-group-${row}-${name}`;
+  return html`<select id="${id}" class="select" data-group-field="${name}" data-row="${row}" ${required ? raw('required aria-required="true"') : ''} aria-describedby="group-${row}-error">
+    ${options.map(([v, label]) => html`<option value="${v}" ${String(value ?? '') === v ? 'selected' : ''}>${label}</option>`)}
+  </select>`;
+}
+
+function analysisRows(d) {
+  const count = Math.min(Math.max(Number(d.analysisGroupCount) || 1, 1), 3);
+  return Array.from({ length: count }, (_, i) => {
+    const row = d.analysisGroups?.[i] || {};
+    return html`<div class="analysis-group__row" data-group-row="${i}">
+      <span class="analysis-group__number"><span class="sr-only">第 </span>${i + 1}<span class="sr-only"> 組</span></span>
+      <div data-label="分析內容">${analysisSelect('content', i, row.content, ANALYSIS_OPTIONS.content)}</div>
+      <div data-label="分群數量">${analysisSelect('clusterCount', i, row.clusterCount, ANALYSIS_OPTIONS.clusterCount, { required: true })}</div>
+      <div data-label="文章情緒">${analysisSelect('sentiment', i, row.sentiment, ANALYSIS_OPTIONS.sentiment)}</div>
+      <div data-label="關鍵字詞性">${analysisSelect('keywordPos', i, row.keywordPos, ANALYSIS_OPTIONS.keywordPos)}</div>
+      <p class="field__error analysis-group__error" id="group-${i}-error" hidden></p>
+    </div>`;
+  }).join('');
+}
 
 function step3(d) {
-  const files = d.source === 'demo' ? [DEMO_DATASET.articleFile] : wizard.files;
-  const kwFiles = wizard.keywordFiles.length ? wizard.keywordFiles : d.source === 'demo' ? [DEMO_DATASET.keywordFile] : [];
+  return html`
+    <h2 class="wizard-card__title wizard-card__title--brand">分析組數</h2>
+    <p class="wizard-card__desc">選擇要執行的話題分析組數，並為每一組設定分析條件。<span class="req" aria-hidden="true">*</span> 為必填選項</p>
+    <div class="analysis-group__count">
+      <label class="field__label" for="f-analysis-group-count">請選擇話題分析組數</label>
+      <select id="f-analysis-group-count" class="select select--count">
+        ${[1, 2, 3].map((n) => html`<option value="${n}" ${Number(d.analysisGroupCount) === n ? 'selected' : ''}>${n}</option>`)}
+      </select>
+    </div>
+    <div class="analysis-group" aria-live="polite">
+      <div class="analysis-group__head" aria-hidden="true">
+        <span>組次</span><span>分析內容</span><span><span class="req">*</span>分群數量</span><span>文章情緒</span><span>關鍵字詞性</span>
+      </div>
+      <div id="analysis-group-rows">${raw(analysisRows(d))}</div>
+    </div>`;
+}
+
+function bindStep3(view, form) {
+  const renderRows = () => { $('#analysis-group-rows', view).innerHTML = analysisRows(wizard.draft); };
+  on(view, 'change', '#f-analysis-group-count', (e) => {
+    wizard.update({ analysisGroupCount: Number(e.target.value) });
+    renderRows();
+    announce(`已顯示 ${e.target.value} 組分析設定`);
+  });
+  on(view, 'change', '[data-group-field]', (e, el) => {
+    const groups = wizard.draft.analysisGroups.map((group) => ({ ...group }));
+    groups[Number(el.dataset.row)][el.dataset.groupField] = el.value;
+    wizard.update({ analysisGroups: groups });
+    if (el.dataset.groupField === 'clusterCount') {
+      el.removeAttribute('aria-invalid');
+      $(`#group-${el.dataset.row}-error`, view).hidden = true;
+    }
+  });
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const result = validateStep3(wizard.draft);
+    $$('.analysis-group__error', view).forEach((el) => { el.hidden = true; el.textContent = ''; });
+    $$('[data-group-field="clusterCount"]', view).forEach((el) => el.removeAttribute('aria-invalid'));
+    if (!result.ok) {
+      result.missing.forEach((i) => {
+        const error = $(`#group-${i}-error`, view);
+        error.textContent = `請選擇第 ${i + 1} 組的分群數量。`;
+        error.hidden = false;
+        $(`#f-group-${i}-clusterCount`, view).setAttribute('aria-invalid', 'true');
+      });
+      $(`#f-group-${result.missing[0]}-clusterCount`, view).focus();
+      announce(`還有 ${result.missing.length} 組需要選擇分群數量`);
+      return;
+    }
+    navigate('/create/4');
+  });
+}
+
+// ───────── Step 4：確認 ─────────
+
+function step4(d) {
+  const files = wizard.files;
+  const kwFiles = wizard.keywordFiles;
   return html`
     <h2 class="wizard-card__title wizard-card__title--brand">確認並開始</h2>
     <p class="wizard-card__desc">確認摘要與設定。送出後會開始<strong>模擬處理</strong>，不會執行真實 AI 分析。</p>
@@ -495,19 +560,24 @@ function step3(d) {
       <div class="summary__head"><h3 id="sum-data" class="summary__title">資料</h3><a href="#/create/2" class="text-link">修改</a></div>
       <dl class="summary__list">
         <div><dt>資料來源平台</dt><dd>${PLATFORMS[d.platform || 'opview'].label}</dd></div>
-        <div><dt>檔案</dt><dd>${d.source === 'demo' ? '範本資料（屈臣氏 2022Q4 測試資料）' : '本機檔案（只完成基本檢查，未解析內容）'}</dd></div>
+        <div><dt>檔案</dt><dd>本機上傳檔案</dd></div>
         <div><dt>文章檔</dt><dd><ul class="plain-list">${files.map((f) => html`<li class="break">${f.name}${f.size != null ? html` <span class="muted">· ${fmtSize(f.size)}</span>` : ''}</li>`)}</ul></dd></div>
         <div><dt>自訂關鍵字</dt><dd>${kwFiles.length ? html`<ul class="plain-list">${kwFiles.map((f) => html`<li class="break">${f.name} <span class="muted">· ${fmtSize(f.size)}</span></li>`)}</ul>` : '未提供（選填）'}</dd></div>
       </dl>
     </section>
 
     <section class="summary" aria-labelledby="sum-set">
-      <div class="summary__head"><h3 id="sum-set" class="summary__title">設定</h3></div>
-      <dl class="summary__list">
-        <div><dt>分群數量</dt><dd>由模型依資料決定 <span class="demo-note">（POC 範本結果為 6 群；正式是否開放設定待分析負責人確認）</span></dd></div>
-        <div><dt>關鍵字處理</dt><dd>套用自訂關鍵字的新增／刪除清單</dd></div>
-        <div><dt>輸出內容</dt><dd>話題洞察、分群摘要、關鍵字總表、摘要統整</dd></div>
-      </dl>
+      <div class="summary__head"><h3 id="sum-set" class="summary__title">分析組數</h3><a href="#/create/3" class="text-link">修改</a></div>
+      <p class="summary__text">共 ${d.analysisGroupCount} 組</p>
+      <div class="analysis-summary">
+        ${d.analysisGroups.slice(0, d.analysisGroupCount).map((group, i) => html`<dl>
+          <div><dt>組次</dt><dd>${i + 1}</dd></div>
+          <div><dt>分析內容</dt><dd>${ANALYSIS_LABELS.content[group.content] || '未設定'}</dd></div>
+          <div><dt>分群數量</dt><dd>${group.clusterCount}</dd></div>
+          <div><dt>文章情緒</dt><dd>${ANALYSIS_LABELS.sentiment[group.sentiment] || '不設定'}</dd></div>
+          <div><dt>關鍵字詞性</dt><dd>${ANALYSIS_LABELS.keywordPos[group.keywordPos] || '不設定'}</dd></div>
+        </dl>`) }
+      </div>
     </section>
 
     <section class="summary" aria-labelledby="sum-share">
@@ -517,7 +587,7 @@ function step3(d) {
     <p class="form-status" id="submit-status" role="status"></p>`;
 }
 
-function bindStep3(view, form) {
+function bindStep4(view, form) {
   const d = wizard.draft;
 
   let submitting = false;
@@ -535,9 +605,9 @@ function bindStep3(view, form) {
         name: d.name.trim(), clientName: d.clientName, clientType: d.clientType, taxId: d.clientType === 'new' ? d.taxId : '', industry: d.industry, subIndustry: d.subIndustry, mode: d.mode, researchQuestion: '',
         source: d.source,
         platform: d.platform || 'opview',
-        files: d.source === 'demo' ? [DEMO_DATASET.articleFile] : wizard.files.map((f) => ({ name: f.name, size: f.size })),
-        keywordFiles: wizard.keywordFiles.length ? wizard.keywordFiles.map((f) => ({ name: f.name, size: f.size })) : d.source === 'demo' ? [DEMO_DATASET.keywordFile] : [],
-        settings: d.settings[d.mode] || {},
+        files: wizard.files.map((f) => ({ name: f.name, size: f.size })),
+        keywordFiles: wizard.keywordFiles.map((f) => ({ name: f.name, size: f.size })),
+        settings: { ...(d.settings[d.mode] || {}), analysisGroupCount: d.analysisGroupCount, analysisGroups: d.analysisGroups.slice(0, d.analysisGroupCount) },
       };
       const an = await createAnalysis(payload, d.key);   // 第二道：冪等鍵
       track('analysis_submitted', { mode: an.mode, source: d.source, analysisId: an.id });

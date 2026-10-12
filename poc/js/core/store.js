@@ -35,6 +35,8 @@ export const DEFAULT_SETTINGS = {
   ai: { language: 'zh-TW' },
 };
 
+const newAnalysisGroup = () => ({ content: '', clusterCount: '', sentiment: '', keywordPos: '' });
+
 function newDraft() {
   return {
     key: `draft-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, // 冪等鍵：防重複建立
@@ -51,9 +53,11 @@ function newDraft() {
     client: '',
     brand: '',
     platform: 'opview',      // 資料來源平台：opview｜keypo｜qsearch
-    source: 'demo',          // 檔案來源：demo（範本）｜local（本機上傳）
+    source: 'local',         // 檔案來源：本機上傳
     fileMeta: [],         // 刷新後用來提示「曾選過哪些檔案」
     keywordMeta: [],
+    analysisGroupCount: 1,  // 話題分析組數：1｜2｜3
+    analysisGroups: [newAnalysisGroup(), newAnalysisGroup(), newAnalysisGroup()],
     settings: structuredClone(DEFAULT_SETTINGS),
     submittedId: null,
   };
@@ -62,7 +66,12 @@ function newDraft() {
 let files = [];            // File[]（只在記憶體）
 let keywordFiles = [];     // File[]（與文章檔相同：只在記憶體）
 let draft = readJSON(DRAFT_KEY, null);
-if (draft) draft = { ...newDraft(), ...draft, key: draft.key || newDraft().key, mode: draft.mode || 'cluster' };
+if (draft) {
+  draft = { ...newDraft(), ...draft, key: draft.key || newDraft().key, mode: draft.mode || 'cluster' };
+  draft.source = 'local';
+  draft.analysisGroupCount = Math.min(Math.max(Number(draft.analysisGroupCount) || 1, 1), 3);
+  draft.analysisGroups = Array.from({ length: 3 }, (_, i) => ({ ...newAnalysisGroup(), ...(draft.analysisGroups?.[i] || {}) }));
+}
 // 刷新後 File 物件消失：保留中繼資料讓畫面明確要求重新選檔
 const metaList = (m) => (Array.isArray(m) ? m : m ? [m] : []);
 if (draft) draft.keywordMeta = metaList(draft.keywordMeta);
@@ -96,7 +105,9 @@ export const wizard = {
       industry: an.industry || '',
       subIndustry: an.subIndustry || '',
       mode: an.mode || 'cluster',
-      source: an.dataset.source === 'demo' ? 'demo' : 'local',
+      source: 'local',
+      analysisGroupCount: an.settings?.analysisGroupCount || 1,
+      analysisGroups: Array.from({ length: 3 }, (_, i) => ({ ...newAnalysisGroup(), ...(an.settings?.analysisGroups?.[i] || {}) })),
       settings: { ...structuredClone(DEFAULT_SETTINGS), [an.mode]: structuredClone(an.settings) },
     });
     persistDraft();

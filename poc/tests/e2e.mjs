@@ -3,7 +3,7 @@
 //   NODE_PATH=<含 puppeteer-core 的 node_modules> node tests/e2e.mjs [baseUrl]
 // 產出：docs/screenshots/*.png 與終端機上的檢查結果。只連到本機伺服器。
 import { createRequire } from 'node:module';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
@@ -179,7 +179,7 @@ await sleep(1500);
 const left = await page.evaluate(() => JSON.parse(localStorage.getItem('clue-poc:db:v3')).analyses.filter((a) => a.id === 'AN-1008').length);
 check('確認刪除後從清單移除（重複點擊只執行一次）', left === 0 && !(await page.$('[data-action="row-menu"][data-id="AN-1008"]')) && (await text('.list-count'))?.includes('共 11 筆'), String(left));
 
-// ───────── 三步建立（話題分群＋示範資料） ─────────
+// ───────── 四步建立（話題分群＋示範資料） ─────────
 const before = await page.evaluate(() => JSON.parse(localStorage.getItem('clue-poc:db:v3')).analyses.length);
 await page.click('[data-action="create"]');
 await sleep(600);
@@ -229,16 +229,20 @@ check('必填完成後「下一步」恢復可用', (await page.$eval('[data-act
 await shot('04-create-step1');
 await page.click('[data-action="next"]');
 await sleep(600);
-check('進入步驟二，預設範本資料（兩份上傳檔）', page.url().endsWith('#/create/2') && (await text('.subpanel'))?.includes('Social Listening Data _testing (Waston).xlsx') && (await text('#keyword-panel'))?.includes('Keyword Data _testing (Waston).xlsx'));
-check('範本資料模式也有自訂關鍵字拖放上傳區', !!(await page.$('#keyword-panel [data-drop="keyword"]')) && !!(await page.$('#keyword-panel #f-kw')));
+check('進入步驟二，顯示文章檔案上傳框', page.url().endsWith('#/create/2') && !!(await page.$('[data-drop="article"]')) && (await text('#upload-title')) === '文章檔案');
+check('已移除範本資料入口與 POC 檢查說明', !(await page.$('[data-action="use-demo"]')) && !(await text('#source-panel'))?.includes('沒有檔案？') && !(await text('#source-panel'))?.includes('POC 只完成檔案基本檢查'));
+check('自訂關鍵字使用獨立拖放上傳區', !!(await page.$('#keyword-panel [data-drop="keyword"]')) && !!(await page.$('#keyword-panel #f-kw')));
 const plats = await page.$$eval('input[name="platform"]', (els) => els.map((e) => e.value + (e.checked ? '*' : '')));
 const platTitles = await page.$$eval('.choice-grid--3 .choice-card__title', (els) => els.map((e) => e.textContent.trim()));
 check('資料來源為 3 個單選區塊：OpView（預設）／Keypo／Qsearch', plats.join(',') === 'opview*,keypo,qsearch' && platTitles.join(',') === 'OpView,Keypo,Qsearch', plats.join(','));
 check('OpView 區塊含說明文字與「前往索取頁」連結', (await text('.choice-card--split:first-child'))?.includes('還沒有文章檔？先到索取頁填寫條件，取得匯出檔後再回來上傳。已填的內容會保留。') && (await page.$eval('.choice-card__link', (a) => a.getAttribute('href'))) === '#/opview');
-check('第二、三步標題靠左且為 Clue 紫', await page.evaluate(() => { const s = getComputedStyle(document.querySelector('.wizard-card__title')); return s.color === 'rgb(132, 75, 153)' && s.textAlign !== 'center'; }));
+check('建立流程標題靠左且為 Clue 紫', await page.evaluate(() => { const s = getComputedStyle(document.querySelector('.wizard-card__title')); return s.color === 'rgb(132, 75, 153)' && s.textAlign !== 'center'; }));
 await page.click('input[name="platform"][value="keypo"]');
 check('可切換為 Keypo', await page.$eval('input[name="platform"][value="keypo"]', (el) => el.checked));
 await page.click('input[name="platform"][value="opview"]');
+writeFileSync('/tmp/clue-poc-articles.csv', '文章編號,內容\n1,測試文章\n');
+await (await page.$('#f-files')).uploadFile('/tmp/clue-poc-articles.csv');
+await sleep(200);
 await shot('05-create-step2-demo');
 await page.click('[data-action="prev"]');
 await sleep(500);
@@ -247,8 +251,24 @@ await page.click('button[type="submit"]');
 await sleep(500);
 await page.click('button[type="submit"]');
 await sleep(600);
-check('進入步驟三', page.url().endsWith('#/create/3'));
+check('進入步驟三「分析組數」', page.url().endsWith('#/create/3') && (await text('.wizard-card__title')) === '分析組數');
+check('預設 1 組，組數可選 1–3', (await page.$$('.analysis-group__row')).length === 1 && (await page.$$eval('#f-analysis-group-count option', (els) => els.map((el) => el.value).join(','))) === '1,2,3');
+await page.select('#f-analysis-group-count', '3');
+check('選 3 組會顯示 3 組設定', (await page.$$('.analysis-group__row')).length === 3);
+check('每組有組次、分析內容、分群數量、文章情緒、關鍵字詞性', (await page.$$('.analysis-group__row [data-group-field]')).length === 12 && (await text('.analysis-group__head'))?.startsWith('組次'));
+await page.click('button[type="submit"]');
+await sleep(200);
+check('每組的分群數量為必填', (await page.$$('.analysis-group__error:not([hidden])')).length === 3);
+await page.select('#f-group-0-content', 'main');
+await page.select('#f-group-0-clusterCount', '6');
+await page.select('#f-group-0-sentiment', 'positive');
+await page.select('#f-group-0-keywordPos', 'noun');
+await page.select('#f-group-1-clusterCount', '10');
+await page.select('#f-group-2-clusterCount', '15');
 await shot('06-create-step3');
+await page.click('button[type="submit"]');
+await sleep(600);
+check('進入步驟四確認，摘要保留 3 組設定', page.url().endsWith('#/create/4') && (await page.$$('.analysis-summary dl')).length === 3 && (await text('.analysis-summary'))?.includes('主文'));
 // 快速連點兩次「開始分析」
 await page.evaluate(() => { const b = document.querySelector('[data-action="start"]'); b.click(); b.click(); });
 await sleep(1500);
@@ -474,10 +494,6 @@ check('選擇關鍵字檔後以相同的檔案卡片顯示（檔名、大小、�
 await page.click('#kw-results [data-action="remove-file"]');
 await sleep(200);
 check('移除關鍵字檔', !(await page.$('#kw-results .file-item')));
-await page.click('[data-action="use-demo"]'); await sleep(200);
-check('可改用範本資料，並可改回上傳本機檔案', !!(await page.$('[data-action="use-local"]')) && !(await page.$('[data-drop="article"]')));
-await page.click('[data-action="use-local"]'); await sleep(200);
-
 await go('#/analysis/AN-1004');
 check('失敗頁說明原因並提供重試', (await text('.state-panel--error'))?.includes('逾時') && !!(await page.$('[data-action="retry"]')));
 await shot('15-failed');

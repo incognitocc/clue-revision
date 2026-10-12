@@ -539,6 +539,24 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: v
 .summary__list--stack > div { grid-template-columns: 1fr; gap: var(--ds-space-xxs); }
 .summary__list--stack dd { display: flex; flex-wrap: wrap; gap: var(--ds-space-xs); }
 .summary__text { color: var(--ds-color-text-primary); }
+.analysis-group__count { display: flex; align-items: center; gap: var(--ds-space-m); margin-bottom: var(--ds-space-l); }
+.analysis-group__count .field__label { margin: 0; font-size: var(--ds-font-size-h3); }
+.select--count { width: 180px; flex: 0 0 auto; }
+.analysis-group { display: grid; gap: var(--ds-space-xs); }
+.analysis-group__head, .analysis-group__row {
+  display: grid; grid-template-columns: 56px repeat(4, minmax(0, 1fr)); gap: var(--ds-space-xs); align-items: center;
+}
+.analysis-group__head { color: var(--ds-color-action); font-weight: var(--ds-font-weight-bold); text-align: center; padding: 0 var(--ds-space-s); }
+.analysis-group__row { padding: var(--ds-space-s); border-bottom: 1px solid var(--ds-color-border); }
+.analysis-group__row:first-child { border-top: 1px solid var(--ds-color-border); }
+.analysis-group__number { text-align: center; font-size: var(--ds-font-size-h3); font-variant-numeric: tabular-nums; }
+.analysis-group__row .select { background-color: var(--ds-color-bg-card); }
+.analysis-group__error { grid-column: 3 / -1; margin: 0; }
+.analysis-summary { display: grid; gap: var(--ds-space-s); margin-top: var(--ds-space-s); }
+.analysis-summary dl { display: grid; grid-template-columns: 90px repeat(4, minmax(0, 1fr)); gap: var(--ds-space-xs); padding: var(--ds-space-s); border-radius: var(--ds-radius-m); background: var(--ds-color-bg-subtle); }
+.analysis-summary dl > div { min-width: 0; }
+.analysis-summary dt { color: var(--ds-color-text-secondary); font-size: var(--ds-font-size-body); }
+.analysis-summary dd { overflow-wrap: anywhere; }
 .advanced { margin-top: var(--ds-space-m); }
 .advanced > summary {
   display: inline-flex; align-items: center; min-height: 44px; cursor: pointer;
@@ -818,8 +836,10 @@ a.hbar__link:hover { background: var(--ds-color-bg-subtle); }
   .table__total td:empty { display: none; }
   .cell-name { max-width: none; }
 
-  .stepper { gap: var(--ds-space-xs); }
+  .stepper { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--ds-space-xs); }
+  .stepper__item { min-width: 0; flex-direction: column; text-align: center; font-size: var(--ds-font-size-caption); }
   .stepper__item:not(:last-child)::after { inline-size: var(--ds-space-m); }
+  .stepper__item:not(:last-child)::after { display: none; }
   .wizard-card__body { padding: var(--ds-space-l) var(--ds-space-m); }
   .wizard-card__foot { position: sticky; bottom: 0; z-index: 5; padding: var(--ds-space-m); box-shadow: 0 -4px 12px color-mix(in srgb, var(--ds-color-text-primary) 8%, transparent); }
   .form-grid, .choice-grid { grid-template-columns: 1fr; }
@@ -829,6 +849,16 @@ a.hbar__link:hover { background: var(--ds-color-bg-subtle); }
   .file-item__status { grid-column: 2; grid-row: 2; }
   .file-item .icon-btn { grid-column: 3; grid-row: 1 / span 2; }
   .summary__list > div { grid-template-columns: 1fr; gap: 0; }
+  .analysis-group__count { align-items: stretch; flex-direction: column; gap: var(--ds-space-xs); }
+  .select--count { width: 100%; }
+  .analysis-group__head { display: none; }
+  .analysis-group__row { grid-template-columns: 52px minmax(0, 1fr); align-items: start; padding: var(--ds-space-m); }
+  .analysis-group__number { grid-row: 1 / span 4; padding-top: 13px; }
+  .analysis-group__row > div { display: grid; grid-template-columns: 7em minmax(0, 1fr); align-items: center; gap: var(--ds-space-xs); }
+  .analysis-group__row > div::before { content: attr(data-label); color: var(--ds-color-action); font-weight: var(--ds-font-weight-bold); }
+  .analysis-group__error { grid-column: 2; }
+  .analysis-summary dl { grid-template-columns: 1fr; }
+  .analysis-summary dl > div { display: grid; grid-template-columns: 7em minmax(0, 1fr); gap: var(--ds-space-xs); }
 
   .state-panel, .state-block { padding: var(--ds-space-l) var(--ds-space-m); }
   .insight-grid, .kpi-grid, .grid-2, .dash-grid { grid-template-columns: 1fr; }
