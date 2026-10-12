@@ -53,12 +53,16 @@ export function lineChart(dates, series, { label }) {
   const y = (v) => H - P.b - (v / max) * (H - P.t - P.b);
   const ticks = [0, Math.round(max / 2), max];
   const months = dates.map((d, i) => [d, i]).filter(([d]) => d.endsWith('-01'));
+  const step = dates.length > 1 ? (W - P.l - P.r) / (dates.length - 1) : W - P.l - P.r;
   return html`<figure class="linechart">
     <div class="pairbar-legend" aria-hidden="true">${series.map((s) => html`<span class="legend legend--${s.cls}">${s.label}</span>`)}</div>
     <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${label}" preserveAspectRatio="none">
       ${ticks.map((t) => raw(`<line class="linechart__grid" x1="${P.l}" x2="${W - P.r}" y1="${y(t)}" y2="${y(t)}"/><text class="linechart__tick" x="${P.l - 6}" y="${y(t) + 4}" text-anchor="end">${t}</text>`))}
       ${months.map(([d, i]) => raw(`<text class="linechart__tick" x="${x(i)}" y="${H - 8}" text-anchor="middle">${Number(d.slice(5, 7))}月</text>`))}
       ${series.map((s) => raw(`<polyline class="linechart__line linechart__line--${s.cls}" points="${s.values.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ')}"/>`))}
+      ${dates.map((d, i) => raw(`<rect class="linechart__hit" tabindex="0" x="${(x(i) - step / 2).toFixed(1)}" y="${P.t}" width="${step.toFixed(1)}" height="${H - P.t - P.b}"
+        data-day-date="${d}" data-day-rows='${JSON.stringify(series.map((s) => ({ label: s.label, value: s.values[i], cls: s.cls })))}'
+        aria-label="${d}：${series.map((s) => `${s.label} ${s.values[i]}`).join('、')}"/>`))}
     </svg>
   </figure>`;
 }

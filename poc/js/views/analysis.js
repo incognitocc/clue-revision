@@ -271,6 +271,21 @@ async function renderResults(view, an, query) {
   view.addEventListener('mouseout', (e) => { if (e.target.closest('[data-topic]')) topicTip.hide(); });
   view.addEventListener('focusin', (e) => { const el = e.target.closest('[data-topic]'); if (el) showTip(el); });
   view.addEventListener('focusout', (e) => { if (e.target.closest('[data-topic]')) topicTip.hide(); });
+  view.addEventListener('click', (e) => { const el = e.target.closest('[data-topic]'); if (el) showTip(el); });
+  // 每小時／星期聲量長條：hover／focus／click 顯示數量
+  const showBarTip = (el) => topicTip.showSimple(el, el.dataset.tip);
+  view.addEventListener('mouseover', (e) => { const el = e.target.closest('[data-tip]'); if (el) showBarTip(el); });
+  view.addEventListener('mouseout', (e) => { if (e.target.closest('[data-tip]')) topicTip.hide(); });
+  view.addEventListener('focusin', (e) => { const el = e.target.closest('[data-tip]'); if (el) showBarTip(el); });
+  view.addEventListener('focusout', (e) => { if (e.target.closest('[data-tip]')) topicTip.hide(); });
+  view.addEventListener('click', (e) => { const el = e.target.closest('[data-tip]'); if (el) showBarTip(el); });
+  // 每日聲量趨勢折線圖：hover／focus／click 顯示當天總聲量／正面／負面
+  const showDayTip = (el) => topicTip.showMulti(el, el.dataset.dayDate.replaceAll('-', '/'), JSON.parse(el.dataset.dayRows));
+  view.addEventListener('mouseover', (e) => { const el = e.target.closest('[data-day-date]'); if (el) showDayTip(el); });
+  view.addEventListener('mouseout', (e) => { if (e.target.closest('[data-day-date]')) topicTip.hide(); });
+  view.addEventListener('focusin', (e) => { const el = e.target.closest('[data-day-date]'); if (el) showDayTip(el); });
+  view.addEventListener('focusout', (e) => { if (e.target.closest('[data-day-date]')) topicTip.hide(); });
+  view.addEventListener('click', (e) => { const el = e.target.closest('[data-day-date]'); if (el) showDayTip(el); });
   on(view, 'click', '.segmented__item', (e, el) => selectSub(el.dataset.sub, true));
   on(view, 'keydown', '.segmented__item', (e, el) => {
     const keys = SUBS.map((s) => s.key); const i = keys.indexOf(el.dataset.sub);
@@ -463,9 +478,9 @@ function insightTab(an, res) {
     <div class="scroll-x" tabindex="0" role="region" aria-label="貼文熱力圖，可左右捲動">
       ${heatTable(R.heatmap, WD, Array.from({ length: 24 }, (_, h) => h), { caption: '各星期與小時的主文數' })}
     </div>
-    <div class="grid-2">
-      <div><h4 class="report-sub">每小時聲量</h4>${columnsPlain(R.hourly.map((v, h) => ({ label: `${h}`, value: v, strong: h === peakHour })), '每小時主文數')}</div>
-      <div><h4 class="report-sub">星期聲量</h4>${columnsPlain(R.weekday.map((v, i) => ({ label: WD[i], value: v, strong: i === wdMax })), '各星期主文數')}</div>
+    <div class="chart-stack">
+      <div><h4 class="report-sub">每小時聲量</h4>${columnsPlain(R.hourly.map((v, h) => ({ label: `${h}`, value: v, tip: `${h}:00 · ${v} 篇`, strong: h === peakHour })), '每小時主文數')}</div>
+      <div><h4 class="report-sub">星期聲量</h4>${columnsPlain(R.weekday.map((v, i) => ({ label: WD[i], value: v, tip: `${WD[i]} · ${v} 篇`, strong: i === wdMax })), '各星期主文數')}</div>
     </div>
     <p class="highlight-line"><strong>時段觀察：</strong>發文高峰在 ${peakHour}:00（${R.hourly[peakHour]} 篇）；${WD[wdMax]}聲量最高（${R.weekday[wdMax]} 篇），${WD[wdMin]}最低（${R.weekday[wdMin]} 篇）。</p>
   </section>`;
@@ -473,8 +488,9 @@ function insightTab(an, res) {
 
 function columnsPlain(rows, label) {
   const m = Math.max(...rows.map((r) => r.value), 1);
-  return html`<div class="minicols" role="img" aria-label="${label}：${rows.map((r) => `${r.label} ${r.value}`).join('、')}">
-    ${rows.map((r) => html`<span class="minicols__col ${r.strong ? 'is-strong' : ''}"><span class="minicols__bar" style="--h:${(r.value / m) * 100}%"></span><span class="minicols__label">${r.label}</span></span>`)}
+  return html`<div class="minicols" aria-label="${label}">
+    ${rows.map((r) => html`<button type="button" class="minicols__col ${r.strong ? 'is-strong' : ''}" data-tip="${r.tip ?? `${r.label} · ${r.value} 篇`}" aria-label="${r.tip ?? `${r.label}：${r.value} 篇`}">
+      <span class="minicols__bar" style="--h:${(r.value / m) * 100}%"></span><span class="minicols__label">${r.label}</span></button>`)}
   </div>`;
 }
 

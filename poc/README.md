@@ -71,6 +71,12 @@ NODE_PATH=<含 xlsx 套件的 node_modules> node scripts/build-watsons-data.cjs 
 
 情緒標籤（話題洞察的「情緒傾向」、來源文章的「正面／中立／負面」）沿用同一個樣式：偏正面／正面＝紫底白字、中立＝灰框、偏負面／負面＝咖啡底白字。
 
+## 長條圖與折線圖的 hover／click 提示
+
+- 「每小時聲量」「星期聲量」改為上下堆疊（原本並排）；長條預設淺灰，只有最高聲量那一條是 Clue 紫；滑鼠移上去、鍵盤 focus 或點擊都會顯示該時段／星期的篇數，可用鍵盤 Tab 到達。
+- 「每日聲量趨勢」折線圖新增可互動區域：同樣以 hover／focus／click 顯示當天的總聲量（紫）、正面（綠）、負面（咖啡），顏色與上方圖例一致。
+- 兩者共用同一個提示框元件（`js/views/topic-tip.js`），新增點擊其他地方即收起的行為，觸控裝置也能用點擊顯示、點別處收起。
+
 ## 表格寬度撐滿容器
 
 「發布時段分析」的貼文熱力圖，以及「話題分群」裡的關鍵字矩陣圖，兩個表格的寬度改為撐滿所在卡片／容器寬度（fill container），不再維持內容原本的窄寬度。
@@ -194,7 +200,7 @@ js/data/seed.js               ← 合成資料：Analysis／Dataset／Topic／In
 js/core/{router,store,telemetry,dom}.js
 js/views/{workbench,create,analysis,poc-panel,ui,icons}.js
 styles/{bridge,theme-clue,app}.css
-tests/e2e.mjs                 ← puppeteer-core 端到端驗證（211 項）
+tests/e2e.mjs                 ← puppeteer-core 端到端驗證（220 項）
 ```
 
 `localStorage` 只保存合成分析資料與介面狀態，**不保存檔案內容**。重新整理頁面後，會明確要求重新選擇檔案。
