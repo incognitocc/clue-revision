@@ -294,6 +294,21 @@ await page.click('.report-sec__title'); await sleep(150);
 check('點其他地方收起折線圖提示', await page.$eval('#topic-tip', (e) => e.hidden));
 const kpiAlign = await page.$$eval('.kpi', (els) => els.map((k) => { const kr = k.getBoundingClientRect(); const l = k.querySelector('.kpi__label'); const v = k.querySelector('.kpi__value'); const body = k.querySelector('.kpi__body').getBoundingClientRect(); return { centered: Math.abs((body.left - kr.left) - (kr.right - body.right)) <= 2, sameLeft: Math.abs(l.getBoundingClientRect().left - v.getBoundingClientRect().left) <= 1 }; }));
 check('KPI 卡：數字組整體置中，上方小字與數字左緣對齊', kpiAlign.length === 4 && kpiAlign.every((x) => x.centered && x.sameLeft), JSON.stringify(kpiAlign));
+const kpiColor = await page.$$eval('.kpi__value', (els) => els.map((e) => getComputedStyle(e).color));
+check('KPI 大數字為 Clue 紫', kpiColor.length === 4 && kpiColor.every((c) => c === 'rgb(132, 75, 153)'), kpiColor.join(','));
+// 所有柱狀／長條圖：同一組的最大值都應達到 100%（寬／高），其餘依比例縮短
+const scaleChecks = await page.evaluate(() => {
+  const pct = (el, prop) => parseFloat(getComputedStyle(el).getPropertyValue(prop)) || parseFloat(el.style.getPropertyValue(prop));
+  const out = {};
+  const hbars = [...document.querySelectorAll('.hbar')].map((g) => [...g.querySelectorAll('.hbar__fill')].map((e) => parseFloat(e.style.getPropertyValue('--w'))));
+  out.hbarMaxIs100 = hbars.every((vals) => vals.length === 0 || Math.max(...vals) >= 99.5);
+  const cols = [...document.querySelectorAll('.colchart')].map((g) => [...g.querySelectorAll('.colchart__bar')].map((e) => parseFloat(e.style.getPropertyValue('--h'))));
+  out.colMaxIs100 = cols.every((vals) => vals.length === 0 || Math.max(...vals) >= 99.5);
+  const minis = [...document.querySelectorAll('.minicols')].map((g) => [...g.querySelectorAll('.minicols__bar')].map((e) => parseFloat(e.style.getPropertyValue('--h'))));
+  out.miniMaxIs100 = minis.every((vals) => vals.length === 0 || Math.max(...vals) >= 99.5);
+  return out;
+});
+check('所有柱狀／長條圖的最大值都達 100%（寬／高），其餘等比例縮短', scaleChecks.hbarMaxIs100 && scaleChecks.colMaxIs100 && scaleChecks.miniMaxIs100, JSON.stringify(scaleChecks));
 await page.evaluate(() => scrollTo(0, 0));
 await page.hover('.hbar__label [data-topic="2"]'); await sleep(250);
 const tip1 = await page.evaluate(() => { const e = document.querySelector('#topic-tip'); return { vis: !e.hidden, text: e.textContent }; });

@@ -614,7 +614,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: v
 .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--ds-space-m); }
 .kpi { padding: var(--ds-space-m) var(--ds-space-l); border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-l); }
 .kpi__label { font-size: var(--ds-font-size-body); color: var(--ds-color-text-secondary); }
-.kpi__value { font-family: var(--ds-font-heading); font-size: var(--ds-font-size-h1); font-weight: var(--ds-font-weight-bold); }
+.kpi__value { font-family: var(--ds-font-heading); font-size: var(--ds-font-size-h1); font-weight: var(--ds-font-weight-bold); color: var(--ds-color-action); }
 .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ds-space-l); }
 .timeline { display: flex; flex-direction: column; gap: var(--ds-space-m); padding-left: var(--ds-space-l); border-left: 1px solid var(--ds-color-border-control); }
 .timeline__item { position: relative; }

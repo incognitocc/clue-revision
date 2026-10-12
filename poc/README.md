@@ -71,6 +71,11 @@ NODE_PATH=<含 xlsx 套件的 node_modules> node scripts/build-watsons-data.cjs 
 
 情緒標籤（話題洞察的「情緒傾向」、來源文章的「正面／中立／負面」）沿用同一個樣式：偏正面／正面＝紫底白字、中立＝灰框、偏負面／負面＝咖啡底白字。
 
+## 柱狀／長條圖統一比例＋KPI 數字改紫
+
+- 全站已稽核：hBars、pairBars、columns、columnsPlain 四種柱狀／長條圖元件，同一組資料裡數值最大的一筆一律是 100% 寬／高，其餘依比例縮短（原本即如此，這次加了自動化檢查鎖定這個行為）。
+- 「社群聲量總覽」KPI 卡的大數字改為 Clue 紫（原為深灰）。
+
 ## 長條圖與折線圖的 hover／click 提示
 
 - 「每小時聲量」「星期聲量」改為上下堆疊（原本並排）；長條預設淺灰，只有最高聲量那一條是 Clue 紫；滑鼠移上去、鍵盤 focus 或點擊都會顯示該時段／星期的篇數，可用鍵盤 Tab 到達。
@@ -200,7 +205,7 @@ js/data/seed.js               ← 合成資料：Analysis／Dataset／Topic／In
 js/core/{router,store,telemetry,dom}.js
 js/views/{workbench,create,analysis,poc-panel,ui,icons}.js
 styles/{bridge,theme-clue,app}.css
-tests/e2e.mjs                 ← puppeteer-core 端到端驗證（220 項）
+tests/e2e.mjs                 ← puppeteer-core 端到端驗證（222 項）
 ```
 
 `localStorage` 只保存合成分析資料與介面狀態，**不保存檔案內容**。重新整理頁面後，會明確要求重新選擇檔案。
