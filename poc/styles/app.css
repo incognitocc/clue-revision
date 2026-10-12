@@ -671,7 +671,7 @@ a.hbar__link:hover { background: var(--ds-color-bg-subtle); }
 .linechart__line--total { stroke: var(--poc-chart-data-strong); stroke-width: 2.25; }
 .linechart__line--pos { stroke: var(--ds-color-success); }
 .linechart__line--neg { stroke: var(--poc-status-failed); }
-.heat { border-collapse: separate; border-spacing: 2px; font-size: var(--ds-font-size-body); }
+.heat { width: 100%; border-collapse: separate; border-spacing: 2px; font-size: var(--ds-font-size-body); }
 .heat th { font-weight: var(--ds-font-weight-bold); color: var(--ds-color-text-secondary); padding: var(--ds-space-xxs); white-space: nowrap; text-align: center; }
 .heat tbody th { text-align: right; padding-right: var(--ds-space-xs); position: sticky; left: 0; background: var(--ds-color-bg-card); }
 .heat td { min-inline-size: 36px; padding: var(--ds-space-xxs); text-align: center; border-radius: 2px; background: color-mix(in srgb, var(--poc-chart-data-strong) var(--p), var(--ds-color-bg-card)); }

@@ -71,6 +71,10 @@ NODE_PATH=<含 xlsx 套件的 node_modules> node scripts/build-watsons-data.cjs 
 
 情緒標籤（話題洞察的「情緒傾向」、來源文章的「正面／中立／負面」）沿用同一個樣式：偏正面／正面＝紫底白字、中立＝灰框、偏負面／負面＝咖啡底白字。
 
+## 表格寬度撐滿容器
+
+「發布時段分析」的貼文熱力圖，以及「話題分群」裡的關鍵字矩陣圖，兩個表格的寬度改為撐滿所在卡片／容器寬度（fill container），不再維持內容原本的窄寬度。
+
 ## 首頁與 OpView 索取頁的收尾
 
 - Hero 下方的分隔線已移除。
@@ -190,7 +194,7 @@ js/data/seed.js               ← 合成資料：Analysis／Dataset／Topic／In
 js/core/{router,store,telemetry,dom}.js
 js/views/{workbench,create,analysis,poc-panel,ui,icons}.js
 styles/{bridge,theme-clue,app}.css
-tests/e2e.mjs                 ← puppeteer-core 端到端驗證（209 項）
+tests/e2e.mjs                 ← puppeteer-core 端到端驗證（211 項）
 ```
 
 `localStorage` 只保存合成分析資料與介面狀態，**不保存檔案內容**。重新整理頁面後，會明確要求重新選擇檔案。

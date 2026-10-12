@@ -301,6 +301,8 @@ await page.keyboard.press('Escape'); await sleep(100);
 check('Esc 關閉提示', await page.$eval('#topic-tip', (e) => e.hidden));
 await page.evaluate(() => document.activeElement.blur());
 check('話題洞察標示非 AI 模型撰寫', (await text('.report-note'))?.includes('並非 AI 模型撰寫'));
+const heatmapW = await page.evaluate(() => { const t = document.querySelector('.heat'); const c = t.closest('.scroll-x'); return { t: Math.round(t.getBoundingClientRect().width), c: Math.round(c.getBoundingClientRect().width) }; });
+check('發布時段熱力圖寬度撐滿容器（fill container）', Math.abs(heatmapW.t - heatmapW.c) <= 1, JSON.stringify(heatmapW));
 const bottomBtns = await page.$$eval('.project-actions__main .btn, .project-actions > .btn', (els) => els.map((e) => e.textContent.trim()));
 check('底部有下載資料／分享大按鍵與刪除專案', bottomBtns.join('|') === '下載資料|分享|刪除專案', bottomBtns.join('|'));
 check('只有一個主要 CTA', (await page.$$('.btn--primary')).length === 1);
@@ -319,6 +321,8 @@ check('切到分群 5：直條圖與泡泡圖同步強調', (await page.$eval('.
 const kw5 = await page.$$eval('.pairbar__label', (els) => els.slice(0, 3).map((e) => e.textContent));
 check('分群 5 關鍵字 Top 30 來自真實資料（店員…）', kw5[0] === '店員' && (await page.$$('.pairbar__row')).length === 30, kw5.join('、'));
 check('關鍵字矩陣 20×20、對角線 1.00', (await page.$$('.heat tbody tr')).length === 20 && (await page.$eval('.heat tbody tr td', (td) => td.textContent)) === '1.00');
+const matrixW = await page.evaluate(() => { const t = document.querySelector('.heat'); const c = t.closest('.scroll-x'); return { t: Math.round(t.getBoundingClientRect().width), c: Math.round(c.getBoundingClientRect().width) }; });
+check('關鍵字矩陣表寬度撐滿容器（fill container）', Math.abs(matrixW.t - matrixW.c) <= 1, JSON.stringify(matrixW));
 check('網址保留分頁與分群', page.url().includes('tab=layers') && page.url().includes('c=5'));
 await shot('09-result-clusters');
 
