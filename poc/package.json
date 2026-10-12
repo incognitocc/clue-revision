@@ -1,0 +1,14 @@
+{
+  "name": "clue-poc",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Clue 內部分析工具改版 POC（純 HTML/CSS/JS，合成資料，未接正式 API）",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

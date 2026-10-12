@@ -1,0 +1,85 @@
+/* ds-sense 產出
+ * Token bridge（暫行）— 把 POC 用到的語意角色接到「本機 Wonder DS tokens」。
+ *
+ * 為什麼有這個檔：@dsc-ai-project/tokens 在本執行環境安裝失敗（GitHub Packages 401），
+ * 讀不到 tokens.json / theme CSS。為了不在元件裡散寫色碼，App CSS 一律只用這裡的 --ds-* 角色，
+ * 角色值暫時指向 vendor/wonder-ds/tokens（來源：~/Works/Wonder/wonder-ds，自 Figma 抽出）。
+ *
+ * ⚠ 這些 --ds-* 名稱是 POC 暫定名，尚未與官方 tokens.json 對齊。
+ *   取得套件後：改為載入 tokens/dist/variables.css + theme CSS，並逐一把本檔角色對到官方名稱，
+ *   對不上的列入「正式整合待辦」。品牌／行動色（action）刻意不放這裡，只在 theme-clue.css 定義。
+ */
+:root {
+  /* Text */
+  --ds-color-text-primary: var(--color-gray-6);
+  --ds-color-text-secondary: var(--color-gray-5);      /* metadata 也用這個：#575757 對白 7.0:1 */
+  --ds-color-text-disabled: var(--color-gray-4);
+  --ds-color-text-inverse: var(--color-white);
+
+  /* Surfaces */
+  --ds-color-bg-page: var(--color-white);
+  --ds-color-bg-subtle: var(--color-gray-1);
+  --ds-color-bg-card: var(--color-white);
+  --ds-color-bg-shell: var(--surface-dark);
+
+  /* Borders：input 等 UI 元件框線用 gray-4（3.5:1），分隔線用 gray-2 */
+  --ds-color-border: var(--color-gray-2);
+  --ds-color-border-control: var(--color-gray-4);
+  --ds-color-border-dashed: var(--form-option-dashed-border);
+
+  /* Status（語意色：綠=成功、紅=錯誤；不反轉） */
+  --ds-color-success: var(--color-nature-support-green);           /* #3e7350，5.5:1 */
+  --ds-color-success-subtle: color-mix(in srgb, var(--color-nature-support-green) 10%, var(--color-white));
+  /* Wonder error #ff7f7d 對白僅 2.5:1，不能當文字／框線 → 受控衍生加深（gap，見 README） */
+  --ds-color-error: color-mix(in srgb, var(--color-error) 62%, var(--color-black));
+  --ds-color-error-subtle: color-mix(in srgb, var(--color-error) 12%, var(--color-white));
+  --ds-color-neutral-subtle: var(--color-gray-1);
+
+  /* Spacing（Wonder 8pt scale） */
+  --ds-space-xxs: var(--space-xxs);
+  --ds-space-xs: var(--space-xs);
+  --ds-space-s: var(--space-s);
+  --ds-space-m: var(--space-m);
+  --ds-space-ml: var(--space-ml);
+  --ds-space-l: var(--space-l);
+  --ds-space-xl: var(--space-xl);
+  --ds-space-xxl: var(--space-xxl);
+
+  /* Radius：S=輸入框內小物、M=按鈕、L=卡片/輸入框、XL=儀式容器、full=tag/頭像 */
+  --ds-radius-s: var(--radius-s);
+  --ds-radius-m: var(--radius-m);
+  --ds-radius-l: var(--radius-l);
+  --ds-radius-xl: var(--radius-xl);
+  --ds-radius-full: 9999px;
+
+  /* Typography */
+  --ds-font-heading: var(--font-heading), var(--font-cjk);
+  --ds-font-body: var(--font-body), var(--font-cjk);
+  --ds-font-size-h0: var(--text-h0);
+  --ds-font-size-h1: var(--text-h1);
+  --ds-font-size-h2: var(--text-h2);
+  --ds-font-size-h3: var(--text-h3);
+  --ds-font-size-regular: var(--text-regular);
+  --ds-font-size-body: var(--text-body);
+  --ds-font-weight-regular: var(--weight-regular);
+  --ds-font-weight-bold: var(--weight-bold);
+  --ds-line-height-regular: var(--leading-regular);
+  --ds-line-height-body: var(--leading-body);
+
+  /* Elevation：Wonder 只有 btn-outerglow；卡片/浮層陰影是 POC 補的（gap） */
+  --ds-shadow-1: 0 2px 8px color-mix(in srgb, var(--color-black) 10%, transparent);
+  --ds-shadow-2: 0 8px 24px color-mix(in srgb, var(--color-black) 10%, transparent);
+
+  /* Motion */
+  --ds-duration-state: 150ms;
+  --ds-duration-enter: 300ms;
+
+  /* Layout（Wonder layout.md） */
+  --ds-layout-header: 80px;
+  --ds-layout-main-nav: 300px;
+  --ds-layout-footer: 60px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --ds-duration-state: 0ms; --ds-duration-enter: 0ms; }
+}

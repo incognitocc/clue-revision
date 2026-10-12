@@ -1,0 +1,22 @@
+/**
+ * Wonder Design System — Grid & Breakpoints
+ * Source: user spec (2026-07-15). 8px base grid.
+ */
+:root {
+  /* Base grid unit — all spacing should be multiples of this (8-point grid) */
+  --grid-base: 8px;
+
+  /* Breakpoints (canonical widths per device) */
+  --breakpoint-mobile: 375px;
+  --breakpoint-tablet: 768px;   /* "Pad" */
+  --breakpoint-desktop: 1440px;
+}
+
+/* Media-query reference (CSS custom props can't be used directly in @media):
+   Mobile : max-width 767px   (base ≈ 375px)
+   Tablet : 768px – 1439px    ("Pad")
+   Desktop: min-width 1440px
+   NOTE: the spacing scale (4/8/12/16/20/24/32/64) already aligns to the 8px grid.
+   NOTE: Header-Phone frame was 428px wide in Figma while the mobile breakpoint is 375px —
+         treat 375px as canonical; the 428 frame is just the artboard size.
+*/

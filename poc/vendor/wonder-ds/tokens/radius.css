@@ -1,0 +1,11 @@
+/**
+ * Wonder Design System — Border Radius Tokens
+ * Source: Figma "Token Documentation — Spacing & Radius" (node 2005:354)
+ * Read via Figma Dev Mode MCP get_metadata (NOT variableized in Figma — recommend adding as Variables).
+ */
+:root {
+  --radius-s: 4px;
+  --radius-m: 8px;
+  --radius-l: 16px;
+  --radius-xl: 32px;
+}

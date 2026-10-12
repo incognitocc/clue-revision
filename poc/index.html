@@ -1,0 +1,85 @@
+<!doctype html>
+<!-- ds-sense 產出 -->
+<html lang="zh-Hant-TW" data-theme="clue">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clue（POC）</title>
+  <link rel="icon" href="data:,">
+  <!-- DS 套件（@dsc-ai-project/tokens）未能安裝，暫以本機 Wonder DS tokens ＋ bridge 提供語意角色；見 README -->
+  <link rel="stylesheet" href="vendor/wonder-ds/tokens/index.css">
+  <link rel="stylesheet" href="styles/bridge.css">
+  <link rel="stylesheet" href="styles/theme-clue.css">
+  <link rel="stylesheet" href="styles/app.css">
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要內容</a>
+
+  <header class="app-header">
+    <div class="app-header__left">
+      <img class="app-header__dentsu" src="vendor/wonder-ds/logo/dentsu-wordmark.svg" alt="dentsu" width="80" height="17">
+      <span class="app-header__divider" aria-hidden="true"></span>
+      <a class="app-header__product" href="#/" aria-label="Clue 首頁（社群口碑分析）">Clue</a>
+      <button type="button" class="shell-btn shell-btn--icon app-header__switch" id="app-switch-toggle" aria-haspopup="dialog" aria-expanded="false" aria-controls="app-switcher" aria-label="切換 dentsu 工具">
+        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+    </div>
+    <div class="app-header__right">
+      <span class="app-header__user"><span class="app-header__name">林示範</span><span class="avatar avatar--shell" aria-hidden="true">林</span></span>
+      <button type="button" class="shell-btn shell-btn--icon" id="menu-toggle" aria-expanded="false" aria-controls="main-nav" aria-label="開啟 Clue 選單">
+        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </header>
+
+
+  <div class="app-body">
+
+    <nav class="main-nav" id="main-nav" aria-label="Clue 主選單">
+      <ul class="main-nav__links">
+        <li><a href="#/" data-nav="work">社群口碑分析</a></li>
+        <li><a href="#/opview" data-nav="opview">OpView 社群資料索取</a></li>
+        <li><a href="#/guide" data-nav="guide">使用指南</a></li>
+      </ul>
+      <div class="main-nav__recent-block" id="recent-block" hidden>
+        <h2 class="main-nav__heading">最近開啟</h2>
+        <ul id="recent-list" class="main-nav__recent-list"></ul>
+      </div>
+    </nav>
+
+    <main id="main" class="main" tabindex="-1">
+      <div id="view"></div>
+    </main>
+  </div>
+
+  <footer class="app-footer">
+    <span class="app-footer__brand">dentsu <span>pro</span></span>
+  </footer>
+
+  <dialog class="app-switcher" id="app-switcher" aria-labelledby="app-switcher-title">
+    <div class="app-switcher__head">
+      <h2 class="app-switcher__title" id="app-switcher-title">切換 dentsu 工具</h2>
+      <button type="button" class="icon-btn" data-action="close-switcher" aria-label="關閉">
+        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <ul class="app-switcher__grid">
+        <li><button type="button" class="app-switcher__item" data-app="AI Media"><span class="app-switcher__tile" aria-hidden="true">AM</span><span class="app-switcher__label">AI Media</span></button></li>
+        <li><button type="button" class="app-switcher__item" data-app="AI Creative"><span class="app-switcher__tile" aria-hidden="true">AC</span><span class="app-switcher__label">AI Creative</span></button></li>
+        <li><button type="button" class="app-switcher__item" data-app="AutoResponder"><span class="app-switcher__tile" aria-hidden="true">AR</span><span class="app-switcher__label">Auto<wbr>Responder</span></button></li>
+        <li><button type="button" class="app-switcher__item" data-app="Clue" aria-current="true"><span class="app-switcher__tile" aria-hidden="true">C</span><span class="app-switcher__label">Clue</span><span class="app-switcher__here">目前所在</span></button></li>
+        <li><button type="button" class="app-switcher__item" data-app="Finbook"><span class="app-switcher__tile" aria-hidden="true">F</span><span class="app-switcher__label">Finbook</span></button></li>
+        <li><button type="button" class="app-switcher__item" data-app="Leon"><span class="app-switcher__tile" aria-hidden="true">L</span><span class="app-switcher__label">Leon</span></button></li>
+        <li><button type="button" class="app-switcher__item" data-app="Personas"><span class="app-switcher__tile" aria-hidden="true">P</span><span class="app-switcher__label">Personas</span></button></li>
+        <li><button type="button" class="app-switcher__item" data-app="TrenDex"><span class="app-switcher__tile" aria-hidden="true">T</span><span class="app-switcher__label">TrenDex</span></button></li>
+        <li><button type="button" class="app-switcher__item" data-app="Wonder"><span class="app-switcher__tile" aria-hidden="true">W</span><span class="app-switcher__label">Wonder</span></button></li>
+        <li><button type="button" class="app-switcher__item" data-app="Writer"><span class="app-switcher__tile" aria-hidden="true">Wr</span><span class="app-switcher__label">Writer</span></button></li>
+    </ul>
+    <p class="app-switcher__note">POC 只示範切換入口，不會連到其他工具。</p>
+  </dialog>
+
+  <div id="toast-region" class="toast-region" aria-live="polite"></div>
+  <div id="sr-status" class="sr-only" aria-live="polite"></div>
+</body>
+</html>

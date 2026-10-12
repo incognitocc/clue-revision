@@ -1,0 +1,24 @@
+/**
+ * Wonder Design System — Spacing & Padding Tokens
+ * Source: Figma "Token Documentation — Spacing & Radius" (node 2005:354)
+ * Read via Figma Dev Mode MCP get_metadata (NOT variableized in Figma — recommend adding as Variables).
+ */
+:root {
+  /* Base spacing scale — gaps, margins, item spacing */
+  --space-xxs: 4px;
+  --space-xs: 8px;
+  --space-s: 12px;
+  --space-m: 16px;
+  --space-ml: 20px;
+  --space-l: 24px;
+  --space-xl: 32px;
+  --space-xxl: 64px;
+
+  /* Semantic padding tokens — page/section level */
+  --padding-section-gap: 24px;
+  --padding-status-bar: 32px;
+  --padding-section-tb: 40px;    /* section top/bottom */
+  --padding-page-lr: 64px;       /* page left/right */
+  --padding-page-title-tb: 64px; /* page title top/bottom */
+  --padding-desc-to-example: 128px;
+}

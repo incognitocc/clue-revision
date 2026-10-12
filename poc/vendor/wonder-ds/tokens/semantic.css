@@ -1,0 +1,25 @@
+/**
+ * Wonder Design System — Semantic aliases
+ * Role-based names that map onto the base palette. Extracted from component variables
+ * (CTA/Form/Table/Input) via Dev Mode MCP. Use THESE in components, not raw hex.
+ */
+:root {
+  /* Surfaces */
+  --surface-default: #ffffff;                 /* surface/default */
+  --surface-dark: #28292d;                    /* surface/dark = gray-6 */
+
+  /* Status / action */
+  --status-cta: var(--color-primary-cta);     /* #0f00a0 */
+  --status-success: var(--color-primary-cta); /* NOTE: "status/CTA, success" — CTA color doubles as success */
+
+  /* Grayscale role aliases (from "Gray scales/*") */
+  --gray-subtle: #dadada;   /* = gray-2 */
+  --gray-default: #aeaeae;  /* = gray-3 */
+  --gray-primary: #000000;  /* = black  */
+
+  /* Icon */
+  --icon-default: var(--color-gray-6); /* #28292d — snapped to nearest existing gray (source was #1e1e1e, off-palette; user decision 2026-07-15) */
+
+  /* Form */
+  --form-option-dashed-border: #aeaeae; /* "選項虛線框" dashed option border = gray-3 */
+}

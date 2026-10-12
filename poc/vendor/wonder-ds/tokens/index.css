@@ -1,0 +1,12 @@
+/**
+ * Wonder Design System — Token entry point (single source of truth)
+ * Import this one file to get all tokens.
+ * Extracted from the Figma "Wonder" file via Figma Dev Mode MCP.
+ */
+@import "./colors.css";
+@import "./spacing.css";
+@import "./radius.css";
+@import "./typography.css";
+@import "./effects.css";
+@import "./semantic.css";
+@import "./grid.css";

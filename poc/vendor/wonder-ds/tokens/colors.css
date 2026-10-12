@@ -1,0 +1,43 @@
+/**
+ * Wonder Design System — Color Tokens
+ * Source of truth: Figma "Wonder" file, extracted via Figma Dev Mode MCP (get_variable_defs)
+ * DO NOT hand-edit values. Re-run the extraction to update.
+ */
+:root {
+  /* Semantic */
+  --color-primary-cta: #0f00a0;
+  --color-error: #ff7f7d;
+  --color-btn-choose-bg: #ffffff;
+  --color-table-bg: #f6f4f2;
+
+  /* Interactive states */
+  --color-interactive-default: #0f00a0;
+  --color-interactive-hover: #5f55c2;   /* NOT variableized in Figma — read from design context (raw hex). Recommend adding as a Figma Variable. */
+  --color-interactive-pressed: #0a0070;
+  --color-interactive-disabled: #aeaeae;
+
+  /* Grayscale ramp */
+  --color-white: #ffffff;
+  --color-gray-1: #f6f6f6;
+  --color-gray-2: #dadada;
+  --color-gray-3: #aeaeae;
+  --color-gray-4: #888888;
+  --color-gray-5: #575757;
+  --color-gray-6: #28292d;
+  --color-black: #000000;
+
+  /* Nature (accent palette used in content components: tabs, progress, cards) */
+  --color-nature-forest-green: #0f4036;
+  --color-nature-support-green: #3e7350;
+  --color-nature-off-white: #f6f4f2;   /* same value as --color-table-bg */
+
+  /* Brand */
+  --color-brand-trendex-green: #4bbfa9;
+  --color-brand-ai-media-blue: #4586b7;
+  --color-brand-ai-media-purple: #7b4bb3;
+  --color-brand-ai-media-pinkpurple: #b34b8b;
+  --color-brand-meta-blue: #2561dc;
+  --color-brand-line-green: #06c755;
+  --color-brand-google-yellow: #f4b400;
+  --color-brand-alert-red: #ff7f7d;
+}

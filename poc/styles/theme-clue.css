@@ -1,0 +1,35 @@
+/* ds-sense 產出
+ * Clue theme 覆寫 — 專案內新增的主題（DS 內建 theme 清單沒有 `clue`，不能假設套件已有）。
+ * 使用：<html data-theme="clue">。只定義 Clue 需要的行動／選取／focus／漸層角色，
+ * 不載入其他 theme 檔，避免多主題互相覆蓋。
+ *
+ * 色值來源（2026-10-07 讀取）：
+ *   https://dentsupro.com.tw/clue/assets/index-C9VU5N7i.css
+ *   :root { --C6: #844b99 }，且 `.btn--primary{background:var(--C6,#844b99)}`、`.upload-label`、
+ *   focus 框線、選取項目皆用 --C6 → 判定為現站主要 CTA 紫。
+ *   對比：#844b99 vs 白字 = 6.09:1（AA 一般文字通過）。
+ *   ⚠ 這是「現站樣式」不是品牌規範文件；正式值仍待設計系統負責人確認。
+ *
+ * hover／active 由 action 受控衍生（加深），白字對比只升不降；未使用 Wonder 藍色。
+ */
+[data-theme="clue"] {
+  --ds-color-action: #844b99;
+  --ds-color-action-hover: color-mix(in srgb, var(--ds-color-action) 86%, var(--color-black));   /* 7.49:1 */
+  --ds-color-action-active: color-mix(in srgb, var(--ds-color-action) 72%, var(--color-black));  /* 9.38:1 */
+  --ds-color-action-text: var(--color-white);
+  --ds-color-action-disabled-bg: var(--color-gray-2);
+  --ds-color-action-disabled-text: var(--color-gray-5);
+
+  /* 選取態底色（裝飾分層，不承載正文對比） */
+  --ds-color-selection: color-mix(in srgb, var(--ds-color-action) 8%, var(--color-white));
+  --ds-color-selection-border: var(--ds-color-action);
+
+  --ds-color-focus: var(--ds-color-action);
+
+  /* 建立流程專用漸層：產品色 → 產品色淡化，135°（只用在 wizard 背景） */
+  --ds-gradient-create: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--ds-color-action) 22%, var(--color-white)) 0%,
+    color-mix(in srgb, var(--ds-color-action) 6%, var(--color-white)) 100%
+  );
+}

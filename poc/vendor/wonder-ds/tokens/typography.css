@@ -1,0 +1,52 @@
+/**
+ * Wonder Design System — Typography Tokens
+ * Source: Figma "Token Documentation — Typography" (node 2005:288)
+ * Read via Figma Dev Mode MCP get_metadata (NOT variableized in Figma — recommend Text Styles / Variables).
+ *
+ * Font strategy: Montserrat for headings, Inter for body & UI text.
+ * NOTE: several styles use "Auto" line-height in Figma → mapped to `normal` here.
+ *       Consider pinning explicit line-heights for predictable rendering.
+ */
+:root {
+  /* Font families */
+  --font-heading: "Montserrat", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-cjk: "Noto Sans CJK TC", "Noto Sans TC", sans-serif; /* CJK text (user names, Chinese UI). Replaces PingFang SC used in Figma. */
+
+  /* Font sizes */
+  --text-h0: 36px;
+  --text-h1: 24px;
+  --text-h2: 20px;
+  --text-h3: 16px;
+  --text-regular: 14px;
+  --text-body: 12px;
+  --text-chart-axes: 7px;
+
+  /* Font weights */
+  --weight-regular: 400;
+  --weight-bold: 700;
+
+  /* Line heights */
+  --leading-h3: 1.5;        /* 150% */
+  --leading-regular: 24px;
+  --leading-regular-bold: 18px;
+  --leading-body: 18px;
+  --leading-body-link: 16px;
+  --leading-auto: normal;   /* Figma "Auto" */
+}
+
+/* Ready-to-use text style classes (1:1 with Figma styles) */
+.text-h0        { font-family: var(--font-heading); font-weight: var(--weight-bold);    font-size: var(--text-h0); line-height: var(--leading-auto); }
+.text-h1        { font-family: var(--font-heading); font-weight: var(--weight-regular); font-size: var(--text-h1); line-height: var(--leading-auto); }
+.text-h1-bold   { font-family: var(--font-heading); font-weight: var(--weight-bold);    font-size: var(--text-h1); line-height: var(--leading-auto); }
+.text-h2        { font-family: var(--font-heading); font-weight: var(--weight-regular); font-size: var(--text-h2); line-height: var(--leading-auto); }
+.text-h2-bold   { font-family: var(--font-heading); font-weight: var(--weight-bold);    font-size: var(--text-h2); line-height: var(--leading-auto); }
+.text-h3        { font-family: var(--font-heading); font-weight: var(--weight-regular); font-size: var(--text-h3); line-height: var(--leading-h3); }
+.text-h3-bold   { font-family: var(--font-heading); font-weight: var(--weight-bold);    font-size: var(--text-h3); line-height: var(--leading-h3); }
+.text-regular      { font-family: var(--font-body); font-weight: var(--weight-regular); font-size: var(--text-regular); line-height: var(--leading-regular); }
+.text-regular-bold { font-family: var(--font-body); font-weight: var(--weight-bold);    font-size: var(--text-regular); line-height: var(--leading-regular-bold); }
+.text-body       { font-family: var(--font-body); font-weight: var(--weight-regular); font-size: var(--text-body); line-height: var(--leading-body); }
+.text-body-bold  { font-family: var(--font-body); font-weight: var(--weight-bold);    font-size: var(--text-body); line-height: var(--leading-auto); }
+.text-body-link  { font-family: var(--font-body); font-weight: var(--weight-regular); font-size: var(--text-body); line-height: var(--leading-body-link); text-decoration: underline; }
+.text-form-input { font-family: var(--font-body); font-weight: var(--weight-regular); font-size: var(--text-body); line-height: var(--leading-auto); }
+.text-chart-axes { font-family: var(--font-body); font-weight: var(--weight-regular); font-size: var(--text-chart-axes); line-height: var(--leading-auto); }
