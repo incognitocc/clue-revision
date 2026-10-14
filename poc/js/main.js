@@ -74,6 +74,22 @@ function closeMobileNav() {
   menuBtn.setAttribute('aria-expanded', 'false');
   document.body.classList.remove('nav-open');
 }
+
+// 桌機側欄：縮成只保留展開按鈕的窄欄。
+const sidebarBtn = $('#sidebar-toggle');
+const sidebar = $('#main-nav');
+function toggleSidebar() {
+  const collapsed = document.body.classList.toggle('nav-collapsed');
+  const label = collapsed ? '展開側邊選單' : '收合側邊選單';
+  sidebarBtn.setAttribute('aria-expanded', String(!collapsed));
+  sidebarBtn.setAttribute('aria-label', label);
+  sidebarBtn.title = label;
+}
+sidebarBtn.addEventListener('click', toggleSidebar);
+sidebar.addEventListener('click', (e) => {
+  if (window.innerWidth < 1024 || e.target.closest('a, button, input, select, textarea')) return;
+  toggleSidebar();
+});
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && document.body.classList.contains('nav-open')) { closeMobileNav(); menuBtn.focus(); }
 });

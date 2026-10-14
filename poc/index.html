@@ -37,7 +37,13 @@
   <div class="app-body">
 
     <nav class="main-nav" id="main-nav" aria-label="Clue 主選單">
-      <ul class="main-nav__links">
+      <video class="main-nav__video" autoplay muted loop playsinline preload="metadata" aria-hidden="true" tabindex="-1">
+        <source src="assets/clue-leftside-bg.mp4" type="video/mp4">
+      </video>
+      <button type="button" class="main-nav__collapse" id="sidebar-toggle" aria-expanded="true" aria-controls="main-nav-links recent-block" aria-label="收合側邊選單" title="收合側邊選單">
+        <svg class="icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <ul class="main-nav__links" id="main-nav-links">
         <li><a href="#/" data-nav="work">社群口碑分析</a></li>
         <li><a href="#/opview" data-nav="opview">OpView 社群資料索取</a></li>
         <li><a href="#/guide" data-nav="guide">使用指南</a></li>
