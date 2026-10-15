@@ -2,8 +2,8 @@
 import { route, fallback, start, currentRoute } from './core/router.js';
 import { $, $$, on, html, toast } from './core/dom.js';
 import { store } from './core/store.js';
-import { renderExplore } from './views/explore.js';
-import { renderWorkbench } from './views/workbench.js';
+import { renderExplore } from './views/explore.js?v=20261015-2';
+import { renderWorkbench } from './views/workbench.js?v=20261015-2';
 import { renderCreate } from './views/create.js';
 import { renderAnalysis, renderSources, renderArticle } from './views/analysis.js';
 import { renderPocPanel } from './views/poc-panel.js';
