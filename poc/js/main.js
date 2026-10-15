@@ -2,6 +2,7 @@
 import { route, fallback, start, currentRoute } from './core/router.js';
 import { $, $$, on, html, toast } from './core/dom.js';
 import { store } from './core/store.js';
+import { renderExplore } from './views/explore.js';
 import { renderWorkbench } from './views/workbench.js';
 import { renderCreate } from './views/create.js';
 import { renderAnalysis, renderSources, renderArticle } from './views/analysis.js';
@@ -19,6 +20,7 @@ const withShell = (section, fn) => async (ctx) => {
   lastPattern = currentRoute()?.pattern;
   setActiveNav(section);
   closeMobileNav();
+  if (section === 'explore') setSidebarCollapsed(true);
   resetBackToTop();   // 每次換頁先關閉，避免上一頁開啟狀態與本頁的事件順序競態；頁面自己決定要不要重新開啟
   document.body.dataset.section = section;
   if (section === 'create' && fromPattern !== '/create/:step') track('analysis_create_started', { via: 'route' });
@@ -33,6 +35,7 @@ route('/analysis/:id/sources', withShell('work', (ctx) => renderSources(root, ct
 route('/analysis/:id/articles/:aid', withShell('work', (ctx) => renderArticle(root, ctx)));
 route('/poc', withShell('poc', () => renderPocPanel(root)));
 route('/opview', withShell('opview', () => renderOpview(root)));
+route('/explore', withShell('explore', () => renderExplore(root)));
 route('/guide', withShell('guide', (ctx) => renderGuide(root, ctx)));
 fallback(withShell('none', () => {
   root.innerHTML = html`<div class="view">${pageHead({ title: '找不到這個頁面', desc: '網址可能有誤。', crumbs: [{ label: '社群口碑分析', href: '#/' }, { label: '找不到頁面' }] })}
@@ -79,7 +82,10 @@ function closeMobileNav() {
 const sidebarBtn = $('#sidebar-toggle');
 const sidebar = $('#main-nav');
 function toggleSidebar() {
-  const collapsed = document.body.classList.toggle('nav-collapsed');
+  setSidebarCollapsed(!document.body.classList.contains('nav-collapsed'));
+}
+function setSidebarCollapsed(collapsed) {
+  document.body.classList.toggle('nav-collapsed', collapsed);
   const label = collapsed ? '展開側邊選單' : '收合側邊選單';
   sidebarBtn.setAttribute('aria-expanded', String(!collapsed));
   sidebarBtn.setAttribute('aria-label', label);
