@@ -48,6 +48,8 @@ export async function resolve() {
 }
 
 export function start() {
+  // The application owns scroll positions when entering a page.
+  history.scrollRestoration = 'manual';
   window.addEventListener('hashchange', resolve);
   resolve();
 }

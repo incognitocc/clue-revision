@@ -1,4 +1,5 @@
 import { $, html } from '../core/dom.js';
+import { breadcrumb } from './ui.js';
 
 const templates = [
   ['熱門議題尋找', '品類的討論趨勢與熱門話題，依平台列出代表文章', '前期提案'],
@@ -25,7 +26,8 @@ export function renderExplore(root) {
     </aside>
     <div class="explore__workspace">
       <div class="explore__scroll" id="explore-scroll">
-        <header class="explore__head"><p class="explore__eyebrow">OpView 即時探索</p>
+        <header class="explore__head">
+          ${breadcrumb([{ label: '社群口碑分析', href: '#/' }, { label: 'OpView 即時探索' }])}
           <h1 class="page-title" tabindex="-1" data-doc-title="OpView 即時探索">今天想從社群找什麼答案？</h1>
           <p>選一個探索模板填入品牌與期間，或直接在下方輸入問題。</p>
         </header>

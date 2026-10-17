@@ -14,8 +14,18 @@ import { resetBackToTop } from './core/fab.js';
 
 const root = $('#view');
 let lastPattern = null;
+let lastPath = null;
+
+function scrollPageToTop() {
+  window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  root.querySelectorAll('.explore__scroll, .explore__history').forEach(el => {
+    el.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  });
+}
 
 const withShell = (section, fn) => async (ctx) => {
+  const enteringPage = lastPath !== ctx.path;
+  lastPath = ctx.path;
   const fromPattern = lastPattern;
   lastPattern = currentRoute()?.pattern;
   setActiveNav(section);
@@ -26,9 +36,10 @@ const withShell = (section, fn) => async (ctx) => {
   if (section === 'create' && fromPattern !== '/create/:step') track('analysis_create_started', { via: 'route' });
   await fn(ctx, fromPattern);
   updateTitle();
+  if (enteringPage) scrollPageToTop();
 };
 
-route('/', withShell('work', (ctx, from) => renderWorkbench(root, { restoreScroll: from != null && from !== '/' })));
+route('/', withShell('work', () => renderWorkbench(root, { restoreScroll: false })));
 route('/create/:step', withShell('create', (ctx) => renderCreate(root, ctx)));
 route('/analysis/:id', withShell('work', (ctx) => renderAnalysis(root, ctx)));
 route('/analysis/:id/sources', withShell('work', (ctx) => renderSources(root, ctx)));
@@ -81,6 +92,14 @@ function closeMobileNav() {
 // 桌機側欄：縮成只保留展開按鈕的窄欄。
 const sidebarBtn = $('#sidebar-toggle');
 const sidebar = $('#main-nav');
+// Re-selecting the current section does not trigger hashchange.
+sidebar.addEventListener('click', e => {
+  const link = e.target.closest('a[data-nav]');
+  if (link && link.getAttribute('href') === (location.hash || '#/')) {
+    closeMobileNav();
+    scrollPageToTop();
+  }
+});
 function toggleSidebar() {
   setSidebarCollapsed(!document.body.classList.contains('nav-collapsed'));
 }
