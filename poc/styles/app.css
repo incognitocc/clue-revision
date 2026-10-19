@@ -1058,10 +1058,12 @@ a.hbar__link:hover { background: var(--ds-color-bg-subtle); }
 .radio input { inline-size: 20px; block-size: 20px; margin: 0; accent-color: var(--ds-color-action); cursor: pointer; }
 .client-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ds-space-xl); align-items: start; }
 .client-grid__left, .client-grid__right { display: flex; flex-direction: column; gap: var(--ds-space-s); min-width: 0; }
+/* 產業大類選單與同列輸入框對齊，並保留標題下方的清楚間隙。 */
+.client-grid__right > .field:first-child > .select { position: relative; top: calc(-1 * var(--ds-space-xxs)); }
 .btn--block { inline-size: 100%; }
 .ai-chip { display: inline-grid; place-items: center; padding: 0 var(--ds-space-xs); border: 1.5px solid currentColor; border-radius: var(--ds-radius-full); font-size: var(--ds-font-size-body); line-height: 1.4; }
-.field__help { font-size: var(--ds-font-size-regular); }
-.text-link--inline { display: inline; margin: 0 2px; }
+.field__help { font-size: var(--ds-font-size-regular); white-space: nowrap; }
+.text-link--inline { display: inline; margin: 0 2px; color: var(--ds-color-action); }
 .info-btn { inline-size: 24px; block-size: 24px; margin-left: var(--ds-space-xxs); padding: 0; display: inline-grid; place-items: center; vertical-align: middle; background: none; border: 0; border-radius: var(--ds-radius-full); cursor: pointer; color: var(--ds-color-action); }
 .info-btn:hover { background: var(--ds-color-selection); }
 .btn--primary[aria-disabled="true"] { background: var(--ds-color-action-disabled-bg); color: var(--ds-color-action-disabled-text); box-shadow: none; }
@@ -1215,11 +1217,19 @@ body[data-section="explore"] .main { padding: 0; }
 .explore__head > p:last-child { color: var(--ds-color-text-secondary); }
 .explore__eyebrow { color: var(--ds-color-action); font-weight: var(--ds-font-weight-bold); margin-bottom: var(--ds-space-xs); }
 .explore__categories { display: flex; flex-wrap: wrap; gap: var(--ds-space-xs); margin-bottom: var(--ds-space-l); }
-.explore__categories [aria-pressed="true"] { background: var(--ds-color-action); border-color: var(--ds-color-action); color: var(--ds-color-action-text); }
+.explore__categories .btn {
+  min-height: 36px; height: 36px; border: 0; border-radius: var(--ds-radius-m);
+  background: var(--ds-color-action-disabled-bg); color: var(--ds-color-action-disabled-text);
+  box-shadow: 0 0 10px 0 color-mix(in srgb, var(--ds-color-action) 20%, transparent);
+}
+.explore__categories .btn:hover { background: color-mix(in srgb, var(--ds-color-action-disabled-bg) 82%, var(--color-black)); }
+.explore__categories [aria-pressed="true"] { background: var(--ds-color-action); color: var(--ds-color-action-text); }
+.explore__categories [aria-pressed="true"]:hover { background: var(--ds-color-action-hover); }
 .explore__category-title { font-size: var(--ds-font-size-h3); margin-bottom: var(--ds-space-m); }
 .explore__cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ds-space-m); }
-.explore__card { padding: var(--ds-space-xl); text-align: left; border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-m); background: var(--ds-color-bg-subtle); color: var(--ds-color-text-primary); cursor: pointer; display: flex; flex-direction: column; gap: var(--ds-space-xs); }
-.explore__card:hover { background: var(--ds-color-selection); border-color: var(--ds-color-action); }
+.explore__card { padding: var(--ds-space-xl); text-align: left; border: 0; border-radius: var(--ds-radius-m); background: var(--ds-color-action-disabled-bg); color: var(--ds-color-text-primary); box-shadow: 0 0 10px 0 color-mix(in srgb, var(--ds-color-action) 20%, transparent); cursor: pointer; display: flex; flex-direction: column; gap: var(--ds-space-xs); }
+.explore__card:hover { background: var(--ds-color-action); color: var(--ds-color-action-text); }
+.explore__card:hover span, .explore__card:hover small { color: var(--ds-color-action-text); }
 .explore__card strong { font-size: var(--ds-font-size-regular); }
 .explore__card span { color: var(--ds-color-text-secondary); line-height: 1.6; }
 .explore__card small { color: var(--ds-color-action); }
@@ -1231,7 +1241,7 @@ body[data-section="explore"] .main { padding: 0; }
 .explore__record:hover, .explore__record[aria-pressed="true"] { background: var(--ds-color-bg-card); border-color: var(--ds-color-border); }
 .explore__message { max-width: 85%; padding: var(--ds-space-l); margin-top: var(--ds-space-m); border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-m); }
 .explore__message--assistant {
-  width: fit-content; margin-right: auto;
+  width: fit-content; margin-right: auto; padding: 0; border: 0;
   background: var(--ds-color-bg-card);
   border-radius: var(--ds-space-xl) var(--ds-space-xl) var(--ds-space-xl) 0;
 }
@@ -1250,6 +1260,28 @@ body[data-section="explore"] .main { padding: 0; }
 @media (width < 600px) {
   .explore__message { width: 100%; max-width: 100%; }
 }
+
+/* 全站按鈕 hover 統一為 CTA 狀態。 */
+button:not(:disabled):not([aria-disabled="true"]):hover {
+  background: var(--ds-color-action-hover) !important;
+  border-color: var(--ds-color-action-hover) !important;
+  color: var(--ds-color-action-text) !important;
+}
+
+.btn[data-action="match"]:not(:disabled) {
+  background: linear-gradient(100deg, var(--ds-color-action), #ff7b80);
+  background-size: 200% 100%;
+  background-position: 0% 50%;
+  border-color: transparent;
+  color: var(--ds-color-action-text);
+}
+.btn[data-action="match"]:not(:disabled):hover {
+  background: linear-gradient(100deg, var(--ds-color-action), #ff7b80) !important;
+  border-color: transparent !important;
+  animation: match-gradient-flow 4s ease-in-out infinite alternate;
+}
+@keyframes match-gradient-flow { to { background-position: 100% 50%; } }
+@media (prefers-reduced-motion: reduce) { .btn[data-action="match"]:not(:disabled):hover { animation: none; } }
 @media (max-width: 1279px) { .explore__cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } .explore { grid-template-columns: 200px minmax(0, 1fr); } }
 @media (max-width: 767px) {
   .explore { display: flex; flex-direction: column; height: auto; min-height: calc(100dvh - var(--ds-layout-header)); }
