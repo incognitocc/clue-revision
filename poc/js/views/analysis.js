@@ -488,9 +488,11 @@ function insightTab(an, res) {
 
 function columnsPlain(rows, label) {
   const m = Math.max(...rows.map((r) => r.value), 1);
+  const min = Math.min(...rows.map((r) => r.value));
+  const tone = (value) => m === min ? 100 : Math.round(((value - min) / (m - min)) * 100);
   return html`<div class="minicols" aria-label="${label}">
     ${rows.map((r) => html`<button type="button" class="minicols__col ${r.strong ? 'is-strong' : ''}" data-tip="${r.tip ?? `${r.label} · ${r.value} 篇`}" aria-label="${r.tip ?? `${r.label}：${r.value} 篇`}">
-      <span class="minicols__bar" style="--h:${(r.value / m) * 100}%"></span><span class="minicols__label">${r.label}</span></button>`)}
+      <span class="minicols__bar" style="--h:${(r.value / m) * 100}%;--tone:${tone(r.value)}%"></span><span class="minicols__label">${r.label}</span></button>`)}
   </div>`;
 }
 
@@ -551,7 +553,7 @@ function keywordsTab(res, kf) {
   <p class="muted">計算方式：以關鍵字詞庫比對每篇主文的標題與內文，計「出現的文章數」。詞庫已套用自訂關鍵字檔（新增 ${M.keywordAdd.length} 個、刪除 ${M.keywordDel.length} 個），共 ${M.vocabSize} 個詞。正式分詞方法待確認。</p>
   <div class="dash-grid dash-grid--kw">
     <section class="dash-card" aria-labelledby="k1">
-      <h3 id="k1" class="dash-card__title">總關鍵字統計<span class="dash-card__en">Keyword Frequency</span></h3>
+      <h3 id="k1" class="dash-card__title">總關鍵字統計</h3>
       <div class="scroll-y" tabindex="0" role="region" aria-label="總關鍵字統計，可捲動">
         <table class="table table--compact" data-sort-table>
           <caption class="sr-only">全部分群文章的關鍵字前 30 名</caption>
@@ -562,7 +564,7 @@ function keywordsTab(res, kf) {
     </section>
     <section class="dash-card" aria-labelledby="k2">
       <div class="dash-card__head">
-        <h3 id="k2" class="dash-card__title">各分群關鍵字統計<span class="dash-card__en">Keyword Frequency by Topic</span></h3>
+        <h3 id="k2" class="dash-card__title">各分群關鍵字統計</h3>
         <div class="field field--inline">
           <label class="field__label" for="kw-filter">分群篩選</label>
           <select id="kw-filter" class="select">
@@ -587,7 +589,7 @@ function keywordsTab(res, kf) {
 function summaryTab(an, res) {
   return html`
   <div class="tab-toolbar">
-    <h3 class="dash-card__title">各分群主題摘要內容<span class="dash-card__en">Summary of each Topic</span></h3>
+    <h3 class="dash-card__title">各分群主題摘要內容</h3>
     <button type="button" class="btn btn--secondary" data-action="download-cluster">${raw(icon('download', { size: 14 }))}<span>各分群原始資料下載</span></button>
   </div>
   <div class="table-wrap"><table class="table table--topics">

@@ -13,6 +13,8 @@ import { track } from './core/telemetry.js';
 import { resetBackToTop } from './core/fab.js';
 
 const root = $('#view');
+$('#feedback-toggle').addEventListener('click', () => toast('意見回饋功能尚未串接。'));
+$('#notifications-toggle').addEventListener('click', () => toast('目前沒有通知。'));
 let lastPattern = null;
 let lastPath = null;
 

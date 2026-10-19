@@ -17,7 +17,7 @@ const heroHtml = () => html`<section class="hero" aria-labelledby="hero-title">
     <p>Clue 社群口碑分析工具<br>上傳從 OpView、Keypo、QSearch 取得的社群貼文，系統會同時以兩種方法分析：AI 閱讀貼文歸納洞察，LDA 主題模型（非生成式 AI）依用詞相似度將貼文分群，兩者互相對照，讓結論更有依據。</p>
     <p class="hero__intro-action">在這裡建立新的分析，或繼續查看你的分析與同事分享的成果</p>
   </div>
-  <a class="hero__cta" href="#/create/1" data-action="create"><span class="hero__plus" aria-hidden="true">${raw(icon('plusBold', { size: 30 }))}</span><span class="hero__cta-label">創建新檔</span></a>
+  <a class="hero__cta" href="#/create/1" data-action="create"><span class="hero__plus" aria-hidden="true">${raw(icon('plusBold', { size: 24 }))}</span><span class="hero__cta-label">創建新檔</span></a>
 </section>`;
 
 export async function renderWorkbench(root, { restoreScroll = true } = {}) {

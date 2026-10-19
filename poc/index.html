@@ -19,13 +19,19 @@
   <header class="app-header">
     <div class="app-header__left">
       <img class="app-header__dentsu" src="vendor/wonder-ds/logo/dentsu-wordmark.svg" alt="dentsu" width="80" height="17">
-      <span class="app-header__divider" aria-hidden="true"></span>
-      <a class="app-header__product" href="#/" aria-label="Clue 首頁（社群口碑分析）">Clue</a>
+      <a class="app-header__product" href="#/" aria-label="Clue 首頁（社群口碑分析）"><img src="assets/clue-logo.svg" alt="Clue" width="79" height="28"></a>
       <button type="button" class="shell-btn shell-btn--icon app-header__switch" id="app-switch-toggle" aria-haspopup="dialog" aria-expanded="false" aria-controls="app-switcher" aria-label="切換 dentsu 工具">
         <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
       </button>
     </div>
     <div class="app-header__right">
+      <button type="button" class="shell-btn app-header__action" id="feedback-toggle" aria-label="意見回饋">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-8l-6 4v-4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/></svg>
+        <span class="app-header__feedback-label">意見回饋</span>
+      </button>
+      <button type="button" class="shell-btn app-header__action" id="notifications-toggle" aria-label="通知">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M10 21h4M12 2V1"/></svg>
+      </button>
       <span class="app-header__user"><span class="app-header__name">林示範</span><span class="avatar avatar--shell" aria-hidden="true">林</span></span>
       <button type="button" class="shell-btn shell-btn--icon" id="menu-toggle" aria-expanded="false" aria-controls="main-nav" aria-label="開啟 Clue 選單">
         <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
@@ -61,7 +67,11 @@
   </div>
 
   <footer class="app-footer">
-    <span class="app-footer__brand">dentsu <span>pro</span></span>
+    <img class="app-footer__brand" src="assets/dentsupro-logo-gradient.png" alt="dentsu pro" width="107" height="23">
+    <div class="app-footer__links">
+      <img class="app-footer__dentsu" src="vendor/wonder-ds/logo/dentsu-wordmark.svg" alt="dentsu" width="72" height="15">
+      <a href="#/terms" class="app-footer__terms">Terms and conditions</a>
+    </div>
   </footer>
 
   <dialog class="app-switcher" id="app-switcher" aria-labelledby="app-switcher-title">

@@ -7,10 +7,12 @@ const fmt = (n) => Number(n).toLocaleString('zh-TW');
 /** 水平長條：rows = [{ label, value, display?, sub?, href?, strong? }] */
 export function hBars(rows, { label = '長條圖', max } = {}) {
   const m = max ?? Math.max(...rows.map((r) => r.value), 1);
+  const min = Math.min(...rows.map((r) => r.value));
+  const tone = (value) => m === min ? 100 : Math.round(((value - min) / (m - min)) * 100);
   return html`<ol class="hbar" aria-label="${label}">
     ${rows.map((r) => {
       const inner = html`<span class="hbar__label">${r.topic ? html`<span class="topic-ref" data-topic="${r.topic}" tabindex="0">${r.label}</span>` : r.label}${r.sub ? html`<span class="hbar__sub">${r.sub}</span>` : ''}</span>
-        <span class="hbar__track" aria-hidden="true"><span class="hbar__fill ${r.strong ? 'is-strong' : ''}" style="--w:${(r.value / m) * 100}%"></span></span>
+        <span class="hbar__track" aria-hidden="true"><span class="hbar__fill ${r.strong ? 'is-strong' : ''}" style="--w:${(r.value / m) * 100}%;--tone:${tone(r.value)}%"></span></span>
         <span class="hbar__value num">${r.display ?? fmt(r.value)}</span>`;
       return html`<li class="hbar__row">${r.href ? html`<a class="hbar__link" href="${r.href}">${inner}</a>` : html`<div class="hbar__link">${inner}</div>`}</li>`;
     })}
@@ -36,10 +38,12 @@ export function pairBars(rows, { label }) {
 /** 直條：rows = [{ label, value, strong?, key? }] */
 export function columns(rows, { label, onKey = 'cluster' } = {}) {
   const m = Math.max(...rows.map((r) => r.value), 1);
+  const min = Math.min(...rows.map((r) => r.value));
+  const tone = (value) => m === min ? 100 : Math.round(((value - min) / (m - min)) * 100);
   return html`<div class="colchart" role="group" aria-label="${label}">
     ${rows.map((r) => html`<button type="button" class="colchart__col ${r.strong ? 'is-strong' : ''}" data-${onKey}="${r.key}" aria-pressed="${r.strong ? 'true' : 'false'}" aria-label="${r.label}：${fmt(r.value)} 篇">
       <span class="colchart__value num">${fmt(r.value)}</span>
-      <span class="colchart__bar" style="--h:${(r.value / m) * 100}%"></span>
+      <span class="colchart__bar" style="--h:${(r.value / m) * 100}%;--tone:${tone(r.value)}%"></span>
       <span class="colchart__label">${r.label}</span>
     </button>`)}
   </div>`;
