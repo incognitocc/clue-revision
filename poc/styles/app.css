@@ -106,6 +106,20 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: v
 .app-header__switch[aria-expanded="true"] { background: color-mix(in srgb, var(--ds-color-text-inverse) 12%, var(--ds-color-bg-shell)); }
 .app-header__switch[aria-expanded="true"] .icon { transform: rotate(180deg); }
 .app-header__switch .icon { transition: transform var(--ds-duration-state) ease; }
+.app-header__legacy {
+  display: inline-flex; align-items: center; min-height: 28px; padding: 0 var(--ds-space-xs); margin-left: var(--ds-space-m);
+  border: 1px solid var(--color-black); border-radius: var(--ds-radius-m);
+  background: var(--ds-color-action); color: var(--ds-color-action-text);
+  font-size: var(--ds-font-size-regular); line-height: 1; white-space: nowrap; text-decoration: none;
+  transition: background-color var(--ds-duration-state) ease;
+}
+.app-header__legacy:hover { background: var(--ds-color-action-hover); }
+.app-header__legacy:active { background: var(--ds-color-action-active); }
+.main-nav__legacy { display: none; }
+@media (max-width: 767px) {
+  .app-header__legacy { display: none; }
+  .main-nav__legacy { display: block; }
+}
 
 /* 工具切換 lightbox（使用者指定：覆蓋式；原生 <dialog> 提供焦點圈限、Esc 關閉、焦點歸還） */
 .app-switcher {
