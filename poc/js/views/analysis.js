@@ -35,7 +35,7 @@ async function loadOr404(view, id) {
       view.innerHTML = html`${pageHead({ title: '沒有存取權限', desc: '你目前沒有這份分析的檢視權限。', crumbs: [{ label: '社群口碑分析', href: '#/' }, { label: '沒有存取權限' }] })}
         ${errorBlock({
           title: '這份分析未分享給你',
-          body: `分析 ${id} 的擁有者是 ${err.detail.ownerName}。如需查看，請直接聯絡擁有者分享給你（POC 不會發送申請）。權限由後端驗證，前端不會顯示任何分析內容。`,
+          body: `分析 ${id} 的擁有者是 ${err.detail.ownerName}。如需查看，請直接聯絡擁有者分享給你。`,
           actions: backToList,
         })}`;
     } else {
@@ -83,11 +83,10 @@ function renderProcessing(view, an, root) {
       <h2 id="proc-title" class="state-panel__title">分析處理中</h2>
       <ol class="proc-steps">
         <li class="proc-steps__item is-done">${raw(icon('check', { size: 16 }))}<span>已收到分析設定與資料資訊</span></li>
-        <li class="proc-steps__item is-active"><span class="pulse" aria-hidden="true"></span><span>模擬處理中…</span></li>
+        <li class="proc-steps__item is-active"><span class="pulse" aria-hidden="true"></span><span>處理中…</span></li>
         <li class="proc-steps__item">${raw(icon('clock', { size: 16 }))}<span>完成後即可查看結果</span></li>
       </ol>
-      <p class="state-panel__body">POC 以固定時間模擬處理，不顯示進度百分比或剩餘時間，因為目前沒有可確認的後端進度資訊。</p>
-      <p class="state-panel__body">你可以離開此頁；完成後從「社群口碑分析」回到這份分析即可。取消功能待後端確認，POC 不提供。</p>
+      <p class="state-panel__body">你可以離開此頁；完成後從「社群口碑分析」回到這份分析即可。</p>
       <div class="state-block__actions">${backToList}</div>
       <p class="sr-only" role="status" id="proc-status">分析處理中</p>
     </section>`;
@@ -111,14 +110,14 @@ function renderFailed(view, an, root) {
     ${!isOwner ? readOnlyNotice(ownerName(an)) : ''}
     <section class="state-panel state-panel--error" aria-labelledby="fail-title">
       <h2 id="fail-title" class="state-panel__title">${raw(icon('alert', { size: 20 }))}分析未完成</h2>
-      <p class="state-panel__body"><strong>原因：</strong>${an.failure?.message ?? '模擬失敗。'}</p>
+      <p class="state-panel__body"><strong>原因：</strong>${an.failure?.message ?? '分析未能完成。'}</p>
       <p class="state-panel__body">專案名稱、資料資訊與設定都已保留。你可以直接重新執行，或修改設定後重新建立。</p>
       ${isOwner ? html`
         <div class="state-block__actions">
           <button type="button" class="btn btn--secondary" data-action="edit">修改設定後重新建立</button>
           <button type="button" class="btn btn--primary" data-action="retry">${raw(icon('refresh', { size: 16 }))}<span>重新執行</span></button>
         </div>
-        <p class="field__hint">POC 中「重新執行」會沿用同一筆分析並覆蓋結果；正式版是否新增工作、覆蓋結果或產生成本待確認。仍無法完成時，請聯絡 Clue 管理員。</p>`
+        <p class="field__hint">仍無法完成時，請聯絡 Clue 管理員。</p>`
       : html`<p class="state-panel__body">你是檢視者，無法重新執行。請聯絡擁有者 ${ownerName(an)}。</p>`}
       <div class="state-block__actions">${backToList}</div>
     </section>`;
@@ -208,7 +207,7 @@ async function renderResults(view, an, query) {
       ${isOwner ? html`<button type="button" class="btn btn--danger-ghost" data-action="delete" aria-expanded="false" aria-controls="delete-confirm">${raw(icon('delete', { size: 14 }))}<span>刪除專案</span></button>` : ''}
       <div id="delete-confirm" class="delete-confirm" hidden role="alertdialog" aria-labelledby="del-title" aria-describedby="del-desc" tabindex="-1">
         <h3 id="del-title" class="subpanel__title">確定刪除「${an.name}」？</h3>
-        <p id="del-desc">刪除後，這份專案的結果與分享對象都會移除，無法復原。POC 只會從本機示範資料移除；可在 POC 情境面板重設。</p>
+        <p id="del-desc">刪除後，這份專案的結果與分享對象都會移除，無法復原。</p>
         <div class="notice__actions">
           <button type="button" class="btn btn--secondary" data-action="cancel-delete">取消</button>
           <button type="button" class="btn btn--danger" data-action="confirm-delete">確認刪除</button>
@@ -321,7 +320,7 @@ async function renderResults(view, an, query) {
     track('analysis_exported', { analysisId: an.id, target: 'local-csv' });
     el.disabled = false;
     $('#action-status', view).textContent = '';
-    toast(`已在本機產生資料檔（${fmtN(list.length)} 篇主文，CSV）`);
+    toast(`已產生資料檔（${fmtN(list.length)} 篇主文，CSV）`);
   });
   on(view, 'click', '[data-action="download-cluster"]', async (e, el) => {
     const c = el.dataset.c ? Number(el.dataset.c) : null;
@@ -392,11 +391,15 @@ function insightTab(an, res) {
   const topDay = [...R.daily].sort((a, b) => b.total - a.total)[0];
   const cLink = (id) => html`話題 ${id}`;
   const tone = (r) => (r.posRate >= r.negRate * 2 ? ['偏正面', 'completed'] : r.negRate > r.posRate ? ['偏負面', 'failed'] : ['中立', 'processing']);
+  const insightCards = [];
+  for (const [t, r, stat] of [['最高聲量話題', byCount[0], `${fmtN(byCount[0].count)} 篇`], ['最高互動話題', byEng[0], `平均互動 ${fmtN(byEng[0].avgEngagement)}`], ['正面率最高話題', byPos[0], `正面率 ${byPos[0].posRate}%`]]) {
+    const same = insightCards.find((c) => c.r.id === r.id);
+    if (same) same.roles.push({ t, stat }); else insightCards.push({ r, roles: [{ t, stat }] });
+  }
 
   return html`
   <section class="report-sec" aria-labelledby="r1">
     <h3 id="r1" class="report-sec__title"><span class="report-sec__num">1</span>社群洞察總結</h3>
-    <p class="muted report-note">以下文字由 POC 依上傳資料的統計結果以固定規則產生，並非 AI 模型撰寫；數字皆可在下方圖表與表格中查核。</p>
     <div class="core-findings">
       <h4 class="core-findings__title">核心發現</h4>
       <ul class="bullet-list">
@@ -405,11 +408,11 @@ function insightTab(an, res) {
         <li><strong>${cLink(byEng[0].id)} 平均互動最高（${fmtN(byEng[0].avgEngagement)}）</strong>：為整體平均 ${fmtN(k.avgEngagement)} 的 ${(byEng[0].avgEngagement / k.avgEngagement).toFixed(1)} 倍；常見關鍵字為「${kws(byEng[0].id)}」。</li>
       </ul>
     </div>
-    <div class="insight-grid">
-      ${[['最高聲量話題', byCount[0], `${fmtN(byCount[0].count)} 篇`], ['最高互動話題', byEng[0], `平均互動 ${fmtN(byEng[0].avgEngagement)}`], ['正面率最高話題', byPos[0], `正面率 ${byPos[0].posRate}%`]].map(([t, r, stat]) => html`
+    <div class="insight-grid insight-grid--${insightCards.length}">
+      ${insightCards.map(({ r, roles }) => html`
         <article class="insight-card">
-          <h4 class="insight-card__eyebrow">${t}</h4>
-          <p class="insight-card__title">話題 ${r.id}<span class="insight-card__stat num">${stat}</span></p>
+          <h4 class="insight-card__eyebrow">${roles.map((x) => x.t).join('・')}</h4>
+          <p class="insight-card__title">話題 ${r.id}${roles.map((x) => html`<span class="insight-card__stat num">${x.stat}</span>`)}</p>
           <p class="insight-card__body">${C(r.id).oneLiner || firstSentence(C(r.id).summary)}</p>
           <p class="insight-card__kw">關鍵字：${kws(r.id)}</p>
         </article>`)}
@@ -514,7 +517,7 @@ function clustersTab(an, res, cId) {
     <section class="dash-card" aria-labelledby="d1">
       <h3 id="d1" class="dash-card__title">話題分群圖</h3>
       ${bubbles(res.clusters, cId)}
-      <p class="muted">圓點大小＝文章數；位置為各分群關鍵字輪廓的 PCA 投影（POC 計算），距離越近代表用詞越相似。點圓點可切換分群。</p>
+      <p class="muted">圓點大小＝文章數；位置為各分群關鍵字輪廓的 PCA 投影，距離越近代表用詞越相似。點圓點可切換分群。</p>
     </section>
     <section class="dash-card" aria-labelledby="d2">
       <h3 id="d2" class="dash-card__title">該分群最常出現關鍵字 Top 30</h3>
@@ -533,7 +536,6 @@ function clustersTab(an, res, cId) {
         <p>${c.summary}</p>
         ${c.oneLiner ? html`<p class="muted">一句話摘要：${c.oneLiner}</p>` : ''}
       </div>
-      <p class="muted">摘要文字取自既有模型輸出（各分群主題摘要），已移除格式符號。</p>
     </section>
     <section class="dash-card dash-card--wide" aria-labelledby="d5">
       <h3 id="d5" class="dash-card__title">該分群關鍵字矩陣圖</h3>
@@ -550,10 +552,10 @@ function keywordsTab(res, kf) {
   const M = res.meta;
   const rows = res.clusters.filter((c) => kf === 'all' || String(c.id) === kf).flatMap((c) => c.keywords.map((k) => ({ cluster: c.id, k: k.k, n: k.c, overall: k.overall })));
   return html`
-  <p class="muted">計算方式：以關鍵字詞庫比對每篇主文的標題與內文，計「出現的文章數」。詞庫已套用自訂關鍵字檔（新增 ${M.keywordAdd.length} 個、刪除 ${M.keywordDel.length} 個），共 ${M.vocabSize} 個詞。正式分詞方法待確認。</p>
+  <p class="muted">計算方式：以關鍵字詞庫比對每篇主文的標題與內文，計「出現的文章數」。詞庫已套用自訂關鍵字檔（新增 ${M.keywordAdd.length} 個、刪除 ${M.keywordDel.length} 個），共 ${M.vocabSize} 個詞。</p>
   <div class="dash-grid dash-grid--kw">
     <section class="dash-card" aria-labelledby="k1">
-      <h3 id="k1" class="dash-card__title">總關鍵字統計</h3>
+      <div class="dash-card__head"><h3 id="k1" class="dash-card__title">總關鍵字統計</h3></div>
       <div class="scroll-y" tabindex="0" role="region" aria-label="總關鍵字統計，可捲動">
         <table class="table table--compact" data-sort-table>
           <caption class="sr-only">全部分群文章的關鍵字前 30 名</caption>
@@ -573,7 +575,7 @@ function keywordsTab(res, kf) {
           </select>
         </div>
       </div>
-      <p class="list-count" aria-live="polite">${fmtN(rows.length)} 筆（每個分群前 30 名）</p>
+      <p class="list-count sr-only" aria-live="polite">${fmtN(rows.length)} 筆（每個分群前 30 名）</p>
       <div class="scroll-y" tabindex="0" role="region" aria-label="各分群關鍵字統計，可捲動">
         <table class="table table--compact" data-sort-table>
           <caption class="sr-only">各分群關鍵字統計</caption>
@@ -600,8 +602,7 @@ function summaryTab(an, res) {
       <td class="num" data-label="文章數">${fmtN(c.count)}</td>
       <td data-label="摘要"><p>${c.summary}</p>${c.oneLiner ? html`<p class="muted">一句話摘要：${c.oneLiner}</p>` : ''}</td>
     </tr>`)}</tbody>
-  </table></div>
-  <p class="muted">摘要文字取自既有模型輸出，已移除 Markdown 符號與模型開場語（如「最終綜合主題摘要：」）。</p>`;
+  </table></div>`;
 }
 
 
@@ -690,7 +691,10 @@ export async function renderSources(root, { params, query }) {
     $('#article-zone', view).innerHTML = rows.length ? html`
       <p class="list-count" aria-live="polite">顯示 ${fmtN(rows.length)} / ${fmtN(articles.length)} 篇 · 第 ${state.page} / ${pages} 頁</p>
       <ol class="article-list">${slice.map((a) => html`<li class="article-card">
-        <div class="article-card__meta"><span class="num">${a.id}</span><span>${a.source} › ${a.site}</span><span class="num">${a.publishedAt}</span><span>${a.author}</span><span class="status-tag status-tag--${sentiTone(a.sentiment)}">${a.sentiment}</span><span class="num">互動 ${fmtN(a.engagement)}</span></div>
+        <div class="article-card__meta">
+          <span class="article-card__origin"><span>${a.source} › ${a.site}</span><span class="num">${a.publishedAt}</span><span>${a.author}</span><span class="num">${a.id}</span></span>
+          <span class="article-card__signals"><span class="status-tag status-tag--${sentiTone(a.sentiment)}">${a.sentiment}</span><span class="num">互動 ${fmtN(a.engagement)}</span></span>
+        </div>
         <h3 class="article-card__title"><a href="${href(`/analysis/${an.id}/articles/${a.id}`, keep())}">${a.title || a.body.slice(0, 50)}</a></h3>
         <p class="article-card__excerpt">${a.body}</p>
       </li>`)}</ol>

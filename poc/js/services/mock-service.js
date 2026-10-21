@@ -177,9 +177,13 @@ export async function getResults(id) {
 
 let articleCache;
 async function allArticles() {
-  if (!articleCache) articleCache = (await import('../data/watsons-articles.js')).WATSONS_ARTICLES;
+  if (!articleCache) {
+    const raw = (await import('../data/watsons-articles.js')).WATSONS_ARTICLES;
+    articleCache = raw.map((a) => ({ ...a, title: stripBr(a.title, ' '), body: stripBr(a.body, '\n') }));
+  }
   return articleCache;
 }
+const stripBr = (s, sep) => (s ? s.replace(/<br\s*\/?>/gi, sep).replace(/\n{3,}/g, '\n\n') : s);
 
 /** 取某分群的文章（cluster 為 null 時取全部主文） */
 export async function getArticles({ cluster = null } = {}) {

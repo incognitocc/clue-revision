@@ -65,13 +65,13 @@ function showForm(view) {
 
       <fieldset class="fieldset fieldset--tight" aria-describedby="h-sources e-sources">
         <legend class="field__label">主題來源 <span class="req" aria-hidden="true">*</span><span class="sr-only">（必填，至少選 1 項）</span></legend>
-        <p class="field__hint" id="h-sources">至少選 1 項；勾選後可再指定平台。選項為 POC 示範，正式清單待 OpView 確認。</p>
+        <p class="field__hint" id="h-sources">至少選 1 項；勾選後可再指定平台。</p>
         <div class="source-grid">
           ${SOURCES.map((src) => {
             const v = s.sources[src.key];
             return html`<div class="source-row">
               <label class="check"><input type="checkbox" data-source="${src.key}" ${v ? 'checked' : ''}><span>${src.label}</span></label>
-              ${src.options ? html`<select class="select" data-source-opt="${src.key}" aria-label="${src.label}：指定平台" ${v ? '' : 'disabled'}>
+              ${src.options ? html`<select class="select" data-source-opt="${src.key}" aria-label="${src.label}：指定平台" ${v ? '' : 'disabled hidden'}>
                 ${src.options.map((o) => html`<option ${v === o ? 'selected' : ''}>${o}</option>`)}</select>` : ''}
             </div>`;
           })}
@@ -109,7 +109,7 @@ function showForm(view) {
 
   on(view, 'change', '[data-source]', (e, el) => {
     const sel = $(`[data-source-opt="${el.dataset.source}"]`, view);
-    if (sel) sel.disabled = !el.checked;
+    if (sel) { sel.disabled = !el.checked; sel.hidden = !el.checked; }
     err('sources', '');
   });
   $('#o-client', view).addEventListener('input', () => err('client', ''));
@@ -236,7 +236,7 @@ function showSubmitted(view, v) {
       crumbs: [{ label: '社群口碑分析', href: '#/' }, { label: 'OpView 社群資料索取' }],
     })}
     <section class="state-panel" aria-labelledby="sub-title">
-      <h2 id="sub-title" class="state-panel__title">${raw(icon('check', { size: 20 }))}需求摘要已在本機產生（POC 模擬，未送出）</h2>
+      <h2 id="sub-title" class="state-panel__title">${raw(icon('check', { size: 20 }))}需求摘要已產生</h2>
       <dl class="summary__list">
         <div><dt>客戶名稱</dt><dd class="break">${v.client}</dd></div>
         <div><dt>主題關鍵字</dt><dd class="break"><code>${v.keywords}</code></dd></div>
@@ -244,9 +244,9 @@ function showSubmitted(view, v) {
         <div><dt>主題來源</dt><dd>${src.join('、')}</dd></div>
         <div><dt>進階設定</dt><dd class="break">${v.advanced.trim() || '未填寫'}</dd></div>
       </dl>
-      <h3 class="subpanel__title">正式版接下來會怎麼走</h3>
+      <h3 class="subpanel__title">接下來的流程</h3>
       <ol class="steps-list">
-        <li>需求送到 OpView 處理（處理時間與通知方式待 API 盤點確認）。</li>
+        <li>需求送到 OpView 處理。</li>
         <li>取得匯出的 CSV／XLSX 檔案。</li>
         <li>回到「創建新檔 › 資料」，選擇「上傳本機檔案」使用這份資料。</li>
       </ol>

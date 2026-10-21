@@ -332,7 +332,7 @@ function confirmDelete(an, doDelete, onCancel) {
     dlg.setAttribute('aria-describedby', 'cd-desc');
     dlg.innerHTML = html`
       <h2 class="confirm-dialog__title" id="cd-title">刪除專案？</h2>
-      <p id="cd-desc" class="break">「${an.name}」的結果與分享對象都會移除，無法復原。POC 只會刪除本機示範資料，可到 POC 情境面板（#/poc）重設。</p>
+      <p id="cd-desc" class="break">「${an.name}」的結果與分享對象都會移除，無法復原。</p>
       <p class="field__error" id="cd-error" role="alert" hidden></p>
       <div class="confirm-dialog__actions">
         <button type="button" class="btn btn--secondary" data-cd="cancel">取消</button>

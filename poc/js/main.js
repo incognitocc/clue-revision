@@ -58,7 +58,7 @@ fallback(withShell('none', () => {
 
 function updateTitle() {
   const h1 = $('.page-title', root);
-  document.title = `Clue - ${h1 ? `${h1.dataset.docTitle || h1.textContent.trim()} · ` : ''}POC`;
+  document.title = h1 ? `Clue - ${h1.dataset.docTitle || h1.textContent.trim()}` : 'Clue';
   // 換頁後把焦點放在標題，螢幕閱讀器會讀出新頁面
   if (h1 && document.activeElement === document.body) h1.focus({ preventScroll: true });
 }
@@ -139,7 +139,7 @@ on(switcher, 'click', '[data-action="close-switcher"]', () => switcher.close());
 on(document, 'click', '[data-app]', (e, el) => {
   if (el.getAttribute('aria-current') === 'true') { if (switcher.open) switcher.close(); return; }
   if (switcher.open) switcher.close();
-  toast(`POC 未連結「${el.dataset.app}」，正式版會切換到該工具。`);
+  toast(`「${el.dataset.app}」尚未開放。`);
 });
 
 renderRecent();

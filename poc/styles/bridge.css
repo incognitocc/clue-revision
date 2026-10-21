@@ -61,6 +61,7 @@
   --ds-font-size-h3: var(--text-h3);
   --ds-font-size-regular: var(--text-regular);
   --ds-font-size-body: var(--text-body);
+  --ds-font-size-caption: var(--text-body);
   --ds-font-weight-regular: var(--weight-regular);
   --ds-font-weight-bold: var(--weight-bold);
   --ds-line-height-regular: var(--leading-regular);

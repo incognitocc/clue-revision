@@ -158,7 +158,7 @@ check('搜尋信箱可篩選清單', (await page.$$('.share-row')).length === 2)
 await page.click('.share-row input'); await sleep(100);
 check('勾選後「分享」可用，並顯示已選數量', (await page.$eval('[data-d="submit"]', (b) => b.getAttribute('aria-disabled'))) === 'false' && (await text('#d-hint'))?.includes('已選取 1'));
 await page.click('[data-d="submit"]'); await sleep(900);
-check('按下分享後面板關閉並提示（POC 不寄信）', await page.$eval('#share-drawer', (d) => !d.open) && (await text('.toast'))?.includes('未寄送通知'));
+check('按下分享後面板關閉並提示', await page.$eval('#share-drawer', (d) => !d.open) && (await text('.toast'))?.includes('已分享給'));
 await page.click(row1); await sleep(100);
 await page.click('#row-menu [data-key="share"]'); await sleep(500);
 check('再次開啟：已分享的信箱顯示「已分享」且不可重複勾選', (await page.$$('.share-row.is-shared')).length === 1 && await page.$eval('.share-row.is-shared input', (i) => i.checked && i.disabled));

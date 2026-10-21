@@ -60,13 +60,13 @@ export function openShareDrawer(an, { onShared } = {}) {
         <input id="d-search" class="input" type="search" placeholder="搜尋信箱" autocomplete="off">
       </div>
       <div class="drawer__box" tabindex="0" role="region" aria-label="信箱清單，可捲動" id="d-list"></div>
-      <p class="field__hint" id="d-hint" aria-live="polite">被分享的人只能檢視（唯讀）。POC 不會寄送通知，也不會變更正式權限。</p>
+      <p class="field__hint" id="d-hint" aria-live="polite">被分享的人只能檢視（唯讀）。</p>
       <p class="field__error" id="d-error" role="alert" hidden></p>
       <button type="button" class="btn btn--primary btn--block drawer__submit" data-d="submit" aria-disabled="true">分享</button>`;
     const refresh = () => {
       $('#d-list', inner).innerHTML = list();
       $('[data-d="submit"]', inner).setAttribute('aria-disabled', selected.size ? 'false' : 'true');
-      $('#d-hint', inner).textContent = selected.size ? `已選取 ${selected.size} 個信箱，被分享的人只能檢視（唯讀）。` : '被分享的人只能檢視（唯讀）。POC 不會寄送通知，也不會變更正式權限。';
+      $('#d-hint', inner).textContent = selected.size ? `已選取 ${selected.size} 個信箱，被分享的人只能檢視（唯讀）。` : '被分享的人只能檢視（唯讀）。';
     };
     refresh();
     $('#d-search', inner).addEventListener('input', (e) => { query = e.target.value; refresh(); });
@@ -74,7 +74,7 @@ export function openShareDrawer(an, { onShared } = {}) {
       if (el.checked) selected.add(el.value); else selected.delete(el.value);
       $('#d-error', inner).hidden = true;
       $('[data-d="submit"]', inner).setAttribute('aria-disabled', selected.size ? 'false' : 'true');
-      $('#d-hint', inner).textContent = selected.size ? `已選取 ${selected.size} 個信箱，被分享的人只能檢視（唯讀）。` : '被分享的人只能檢視（唯讀）。POC 不會寄送通知，也不會變更正式權限。';
+      $('#d-hint', inner).textContent = selected.size ? `已選取 ${selected.size} 個信箱，被分享的人只能檢視（唯讀）。` : '被分享的人只能檢視（唯讀）。';
     });
     on(inner, 'click', '[data-d="submit"]', async (e, el) => {
       if (busy) return;
@@ -93,7 +93,7 @@ export function openShareDrawer(an, { onShared } = {}) {
         const updated = await shareAnalysis(an.id, [...selected]);
         track('analysis_shared', { analysisId: an.id, result: 'shared', fileCount: n });
         dlg.close();
-        toast(`已分享給 ${n} 位（POC：僅更新本機示範資料，未寄送通知）`);
+        toast(`已分享給 ${n} 位`);
         announce(`已分享給 ${n} 位`);
         onShared?.(updated);
       } catch (err) {

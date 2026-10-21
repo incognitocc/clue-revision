@@ -42,13 +42,6 @@ export function readOnlyNotice(ownerName) {
   </div>`;
 }
 
-export function aiNotice() {
-  return html`<div class="notice notice--ai" role="note">
-    <span class="notice__icon notice__icon--text" aria-hidden="true">AI</span>
-    <div><strong>AI 產出（示範）</strong>：以下內容為 POC 預先撰寫的合成結果，未執行真實 AI 分析；正式產品中 AI 產出仍需搭配來源文章查核。</div>
-  </div>`;
-}
-
 export function spinner(label = '載入中…') {
   return html`<div class="loading" role="status"><span class="loading__dot" aria-hidden="true"></span>${label}</div>`;
 }

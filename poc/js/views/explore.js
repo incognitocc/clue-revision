@@ -42,7 +42,7 @@ export function renderExplore(root) {
         <label class="field__label" for="explore-input">你的問題</label>
         <div class="explore__input-row"><textarea class="textarea" id="explore-input" rows="3" maxlength="4000" placeholder="輸入品牌、想探索的問題與查詢期間…" required></textarea>
           <button class="btn btn--primary explore__send" type="submit" aria-label="送出" title="送出"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5m-7 7 7-7 7 7"/></svg></button></div>
-        <p class="field__hint">示範模式 · 尚未連接 OpView Agent，回覆不含即時社群資料。Enter 送出，Shift + Enter 換行。</p>
+        <p class="field__hint">Enter 送出，Shift + Enter 換行。</p>
       </form>
     </div>
   </section>`;
@@ -55,7 +55,7 @@ export function renderExplore(root) {
     const active = sessions.find(s => s.id === activeId);
     $('#explore-templates', root).hidden = Boolean(active);
     $('#explore-history', root).innerHTML = sessions.length ? html`${sessions.map(s => html`<button type="button" class="explore__record" data-session="${s.id}" aria-pressed="${s.id === activeId}">${s.title}</button>`)}` : html`<p class="field__hint">尚無探索紀錄，從一個問題開始。</p>`;
-    $('#explore-messages', root).innerHTML = html`${(active?.messages || []).map(m => html`<article class="explore__message explore__message--${m.role}"><strong>${m.role === 'user' ? '你' : 'OpView 助理 · 示範'}</strong><p>${m.text}</p></article>`)}`;
+    $('#explore-messages', root).innerHTML = html`${(active?.messages || []).map(m => html`<article class="explore__message explore__message--${m.role}"><strong>${m.role === 'user' ? '你' : 'OpView 助理'}</strong><p>${m.text}</p></article>`)}`;
   }
   $('#explore-new', root).addEventListener('click', () => { activeId = null; input.value = ''; drawConversation(); input.focus(); });
   $('.explore__categories', root).addEventListener('click', e => {
@@ -87,7 +87,7 @@ export function renderExplore(root) {
       sessions.unshift(active); activeId = active.id;
     }
     active.messages.push({ role: 'user', text: question });
-    active.messages.push({ role: 'assistant', text: '已記錄你的探索問題。這是對話流程示範，目前尚未查詢 OpView 資料。\n\n你可以繼續補充品牌、競品、查詢期間與關注的平台；正式串接後，助理將依這些條件探索社群討論並提供來源。' });
+    active.messages.push({ role: 'assistant', text: '已記錄你的探索問題。\n\n你可以繼續補充品牌、競品、查詢期間與關注的平台，助理會依這些條件探索社群討論並提供來源。' });
     input.value = ''; drawConversation();
     const scroll = $('#explore-scroll', root); scroll.scrollTop = scroll.scrollHeight;
     input.focus();

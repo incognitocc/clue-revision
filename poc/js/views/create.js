@@ -149,7 +149,7 @@ function step1(d) {
           <p class="field__error" id="clientName-error" hidden></p>
         </div>
         ${existing ? html`<button type="button" class="btn btn--secondary btn--block" data-action="match" ${d.clientName.trim() ? '' : 'disabled'}><span class="ai-chip" aria-hidden="true">AI</span>搜尋比對</button>
-        <p class="field__hint" id="client-note" aria-live="polite">${d.matchNote || 'POC 的比對只會查詢示範客戶清單（不是真實客戶主檔，也沒有使用 AI 模型）。'}</p>
+        <p class="field__hint" id="client-note" aria-live="polite">${d.matchNote || ''}</p>
         <p class="field__help">若您不清楚公司名稱，請至<a class="text-link text-link--inline" href="${COMMERCE_URL}" target="_blank" rel="noopener noreferrer">商工登記網站</a>查詢<span class="sr-only">（外部網站，開新分頁）</span></p>` : html`<p class="field__help" id="client-note">若您不清楚客戶公司名稱，請至<a class="text-link text-link--inline" href="${COMMERCE_URL}" target="_blank" rel="noopener noreferrer">商工登記</a>查詢<span class="sr-only">（外部網站，開新分頁）</span></p>`}
       </div>
 
@@ -166,7 +166,7 @@ function step1(d) {
           <span class="field__label"><label for="f-industry">客戶產業大類</label>
             <button type="button" class="info-btn" data-action="info" aria-expanded="false" aria-controls="industry-info" aria-label="產業分類說明">${raw(icon('info', { size: 16 }))}</button>
             <span class="req" aria-hidden="true">*</span><span class="sr-only">（必填）</span></span>
-          <p class="field__hint" id="industry-info" hidden>產業分類為 POC 示範選項；正式分類沿用公司內部產業標準（待確認）。</p>
+          <p class="field__hint" id="industry-info" hidden>產業分類沿用公司內部產業標準。</p>
           <select id="f-industry" name="industry" class="select" aria-describedby="industry-error">
             <option value="">請選擇產業大類</option>
             ${Object.keys(INDUSTRIES).map((k) => html`<option value="${k}" ${d.industry === k ? 'selected' : ''}>${k}</option>`)}
@@ -257,10 +257,10 @@ function bindStep1(view, form) {
     const hits = matchClients(text);
     if (hits.length) {
       const h = hits[0];
-      wizard.update({ clientName: h.name, industry: h.industry, subIndustry: h.sub, matchNote: `找到示範客戶「${h.name}」，已帶入產業類別（${h.industry} › ${h.sub}）。可自行修改。` });
+      wizard.update({ clientName: h.name, industry: h.industry, subIndustry: h.sub, matchNote: `找到客戶「${h.name}」，已帶入產業類別（${h.industry} › ${h.sub}）。可自行修改。` });
       track('client_match_completed', { result: 'found' });
     } else {
-      wizard.update({ matchNote: `示範客戶清單中沒有符合「${text.trim()}」的客戶。請確認公司名稱，或改選「創建新客戶」。` });
+      wizard.update({ matchNote: `客戶清單中沒有符合「${text.trim()}」的客戶。請確認公司名稱，或改選「創建新客戶」。` });
       track('client_match_completed', { result: 'not-found' });
     }
     rerender();
@@ -328,7 +328,7 @@ function localPanel(d) {
 function keywordPanel(d) {
   return html`<section class="subpanel" aria-labelledby="kw-title">
     <h3 class="subpanel__title" id="kw-title">自訂關鍵字 <span class="optional">選填</span></h3>
-    <p class="subpanel__rule">用途：提供品牌名、產品名、俗稱或競品名，讓分析辨識主題時優先參考。可略過；正式版是否必填待確認。格式：${LIMITS[wizard.draft.mode].label}（與文章檔相同）。</p>
+    <p class="subpanel__rule">用途：提供品牌名、產品名、俗稱或競品名，讓分析辨識主題時優先參考。可略過。格式：${LIMITS[wizard.draft.mode].label}（與文章檔相同）。</p>
     ${wizard.lostKeyword ? html`<div class="notice notice--warn" role="alert">${raw(icon('alert', { size: 18 }))}<div>頁面重新整理後未保留關鍵字檔（${wizard.draft.keywordMeta.map((f) => f.name).join('、')}），需要時請重新選擇。</div></div>` : ''}
     <label class="dropzone" for="f-kw" data-drop="keyword">
       ${raw(icon('upload', { size: 24 }))}
@@ -544,7 +544,7 @@ function step4(d) {
   const kwFiles = wizard.keywordFiles;
   return html`
     <h2 class="wizard-card__title wizard-card__title--brand">確認並開始</h2>
-    <p class="wizard-card__desc">確認摘要與設定。送出後會開始<strong>模擬處理</strong>，不會執行真實 AI 分析。</p>
+    <p class="wizard-card__desc">確認摘要與設定。送出後會開始分析。</p>
 
     <section class="summary" aria-labelledby="sum-task">
       <div class="summary__head"><h3 id="sum-task" class="summary__title">專案基本資訊</h3><a href="#/create/1" class="text-link">修改</a></div>
@@ -582,7 +582,7 @@ function step4(d) {
 
     <section class="summary" aria-labelledby="sum-share">
       <div class="summary__head"><h3 id="sum-share" class="summary__title">可見對象</h3></div>
-      <p class="summary__text">僅自己。POC 不會建立分享、不會發送通知。</p>
+      <p class="summary__text">僅自己。</p>
     </section>
     <p class="form-status" id="submit-status" role="status"></p>`;
 }
