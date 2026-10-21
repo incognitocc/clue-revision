@@ -616,6 +616,16 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: v
 .file-item__status { display: inline-flex; align-items: center; gap: var(--ds-space-xxs); font-size: var(--ds-font-size-body); font-weight: var(--ds-font-weight-regular); white-space: nowrap; }
 .file-item--ok .file-item__status { color: var(--ds-color-success); }
 .file-item--error .file-item__status { color: var(--ds-color-error); }
+.file-item--pending .file-item__status { color: var(--ds-color-text-secondary); }
+.file-item__state { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--ds-space-xs) var(--ds-space-s); }
+.file-item__state .btn--sm { flex: none; }
+.file-item .pulse { margin: 0 2px; }
+.clean-steps { display: flex; flex-direction: column; gap: var(--ds-space-xs); margin: var(--ds-space-xxs) 0; }
+.clean-steps li { display: flex; align-items: center; gap: var(--ds-space-xs); }
+.clean-steps .icon { color: var(--ds-color-success); flex: none; }
+.confirm-dialog--closable { position: fixed; overflow: visible; }
+.confirm-dialog--closable .confirm-dialog__title { padding-right: var(--ds-space-xl); }
+.confirm-dialog--closable .btn { margin-top: var(--ds-space-s); }
 
 .summary { padding: var(--ds-space-m) 0; border-top: 1px solid var(--ds-color-border); }
 .summary:first-of-type { border-top: 0; padding-top: 0; }
@@ -629,6 +639,12 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: v
 .summary__text { color: var(--ds-color-text-primary); }
 .analysis-group__count { display: flex; align-items: center; gap: var(--ds-space-m); margin-bottom: var(--ds-space-l); }
 .analysis-group__count .field__label { margin: 0; font-size: var(--ds-font-size-h3); }
+.insight-topic { margin-top: var(--ds-space-xl); }
+.pre-wrap { white-space: pre-wrap; }
+.insight-topic__field { display: flex; flex-direction: column; gap: var(--ds-space-xs); }
+.insight-topic__field .field__label { font-size: var(--ds-font-size-h3); }
+.insight-topic__field .textarea { min-height: 96px; resize: vertical; }
+.insight-topic .field__error { margin-top: var(--ds-space-xs); }
 .select--count { width: 180px; flex: 0 0 auto; }
 .analysis-group { display: grid; gap: var(--ds-space-xs); }
 .analysis-group__head, .analysis-group__row {
@@ -985,7 +1001,7 @@ a.hbar__link:hover { background: var(--ds-color-bg-subtle); }
   .subpanel { padding: var(--ds-space-m); }
   .file-item { grid-template-columns: 40px minmax(0, 1fr) auto; }
   .file-item__type { inline-size: 40px; }
-  .file-item__status { grid-column: 2; grid-row: 2; }
+  .file-item__state { grid-column: 2; grid-row: 2; justify-content: flex-start; }
   .file-item .icon-btn { grid-column: 3; grid-row: 1 / span 2; }
   .summary__list > div { grid-template-columns: 1fr; gap: 0; }
   .analysis-group__count { align-items: stretch; flex-direction: column; gap: var(--ds-space-xs); }
@@ -1166,11 +1182,13 @@ a.hbar__link:hover { background: var(--ds-color-bg-subtle); }
 
 /* 清單頁：上方 tab 與搜尋／篩選列一起黏在頁首下方（手機版只黏 tab，避免篩選列佔掉太多畫面） */
 .tabs--list { margin-bottom: 0; }
-.view--work .zone--filters {
+.view--work .zone--filters, .view--opview .zone--filters {
   position: sticky; top: calc(var(--ds-layout-header) + var(--tabs-h)); z-index: 18;
   background: var(--ds-color-bg-page); padding-top: var(--ds-space-l);
 }
-@media (max-width: 767px) { .view--work .zone--filters { position: static; } }
+@media (max-width: 767px) { .view--work .zone--filters, .view--opview .zone--filters { position: static; } }
+.view--opview #op-panel > .form-card, .view--opview #op-panel > .state-panel { margin-top: var(--ds-space-l); }
+.row-name { font-weight: var(--ds-font-weight-bold); overflow-wrap: anywhere; }
 
 /* ───────────── 專案狀態標籤（固定寬度的膠囊；依設計稿：處理中＝白底灰框、已完成＝Clue 紫、失敗＝銅褐） ───────────── */
 .status-tag {

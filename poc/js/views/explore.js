@@ -43,6 +43,7 @@ export function renderExplore(root) {
         <div class="explore__input-row"><textarea class="textarea" id="explore-input" rows="3" maxlength="4000" placeholder="輸入品牌、想探索的問題與查詢期間…" required></textarea>
           <button class="btn btn--primary explore__send" type="submit" aria-label="送出" title="送出"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5m-7 7 7-7 7 7"/></svg></button></div>
         <p class="field__hint">Enter 送出，Shift + Enter 換行。</p>
+        <p class="field__hint">資料來源：OpView Agent Tool API｜近6個月的社群網站、討論區、新聞與部落格資料。AI 回答可能會出錯，請務必查核重要資訊再行運用。</p>
       </form>
     </div>
   </section>`;

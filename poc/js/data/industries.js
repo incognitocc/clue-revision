@@ -27,5 +27,13 @@ export function matchClients(text) {
 }
 
 // 專案命名規則（依設計稿提示）：中英文大小寫字母與數字，避免使用 - _ 以外的符號與空白
-export const PROJECT_NAME_RE = /^[\p{Script=Han}A-Za-z0-9_-]+$/u;
-export const sanitizeProjectName = (s) => s.replace(/[^\p{Script=Han}A-Za-z0-9_-]+/gu, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+export const PROJECT_NAME_RE = /^[\p{Script=Han}A-Za-z0-9_()-]+$/u;
+export const sanitizeProjectName = (s) => s.replace(/[^\p{Script=Han}A-Za-z0-9_()-]+/gu, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+/** 副本命名：原名（去掉結尾既有的 (n)）＋ 第一個未使用的 (n) */
+export function copyProjectName(name, taken) {
+  const base = sanitizeProjectName(name).replace(/\(\d+\)$/, '').slice(0, 54);
+  const used = new Set(taken.map(sanitizeProjectName));
+  let n = 1;
+  while (used.has(`${base}(${n})`)) n += 1;
+  return `${base}(${n})`;
+}

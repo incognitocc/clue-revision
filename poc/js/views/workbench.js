@@ -1,13 +1,15 @@
 // ds-sense 產出 — A. 社群口碑分析
 import { html, raw, on, $, debounce, fmtDateTime, announce, toast } from '../core/dom.js';
-import { store, DEFAULT_LIST } from '../core/store.js';
-import { listAnalyses, ownerName, setPinned, deleteAnalysis } from '../services/mock-service.js';
+import { store, DEFAULT_LIST, wizard } from '../core/store.js';
+import { copyProjectName } from '../data/industries.js';
+import { listAnalyses, countAnalyses, ownerName, setPinned, deleteAnalysis } from '../services/mock-service.js';
 import { navigate } from '../core/router.js';
 import { setBackToTop } from '../core/fab.js';
 import { openShareDrawer } from './share-drawer.js';
 import { track } from '../core/telemetry.js';
 import { statusBadge, spinner, STATUS } from './ui.js';
 import { icon } from './icons.js';
+import { openRowMenu, closeRowMenu, isMenuOpenFor, confirmDelete } from './row-menu.js';
 
 
 // 首頁 Hero（入口儀式：大標＋副標＋圓形 + CTA）。位於內容容器之外，才能撐滿整個內容欄寬。
@@ -23,12 +25,13 @@ const heroHtml = () => html`<section class="hero" aria-labelledby="hero-title">
 export async function renderWorkbench(root, { restoreScroll = true } = {}) {
   closeMenu();
   const s = store.list;
+  let counts = await countAnalyses();
   const view = document.createElement('div');
   view.className = 'view view--work';
   view.innerHTML = html`
     <div class="tabs tabs--list" role="tablist" aria-label="分析清單">
-      ${tabBtn('mine', '我的分析', s.tab)}
-      ${tabBtn('shared', '與我分享', s.tab)}
+      ${tabBtn('mine', `我的分析 (${counts.mine})`, s.tab)}
+      ${tabBtn('shared', `與我分享 (${counts.shared})`, s.tab)}
     </div>
     <section class="zone zone--filters" aria-label="篩選分析" data-zone="filters">
       <div class="filters" id="list-filters">
@@ -65,9 +68,12 @@ export async function renderWorkbench(root, { restoreScroll = true } = {}) {
   let rowsById = new Map();
   const refresh = async ({ announceCount = false } = {}) => {
     const st = store.list;
-    const { rows, totalInTab } = await listAnalyses(st);
+    const [{ rows, totalInTab }, nextCounts] = await Promise.all([listAnalyses(st), countAnalyses()]);
     // 若期間已換頁面就放棄
     if (!view.isConnected) return;
+    counts = nextCounts;
+    $('#tab-mine', view).textContent = `我的分析 (${counts.mine})`;
+    $('#tab-shared', view).textContent = `與我分享 (${counts.shared})`;
     rowsById = new Map(rows.map((r) => [r.id, r]));
     renderHead(view, st, totalInTab);
     renderData(view, st, rows, totalInTab);
@@ -141,8 +147,14 @@ export async function renderWorkbench(root, { restoreScroll = true } = {}) {
     } else if (key === 'share') {
       track('analysis_share_opened', { analysisId: an.id, via: 'list-menu' });
       openShareDrawer(an, { onShared: () => refresh() });
+    } else if (key === 'copy') {
+      const { rows } = await listAnalyses({ tab: 'mine' });
+      wizard.prefillFrom(an, { name: copyProjectName(an.name, rows.map((r) => r.name)), reuseFiles: true });
+      track('analysis_copy_started', { analysisId: an.id });
+      store.setList({ scrollY: window.scrollY });
+      navigate('/create/1');
     } else if (key === 'delete') {
-      await confirmDelete(an, async () => {
+      await confirmDeleteProject(an, async () => {
         await deleteAnalysis(an.id);
         store.dropRecentItem(an.id);
         track('analysis_deleted', { analysisId: an.id });
@@ -155,7 +167,7 @@ export async function renderWorkbench(root, { restoreScroll = true } = {}) {
   };
   on(view, 'click', '[data-action="row-menu"]', (e, el) => {
     e.stopPropagation();
-    if (menuTrigger === el) { closeMenu(); return; }
+    if (isMenuOpenFor(el)) { closeMenu(); return; }
     const an = rowsById.get(el.dataset.id);
     if (an) openMenu(el, an, runAction);
   });
@@ -247,120 +259,23 @@ export { DEFAULT_LIST };
 
 // ───────────────────────── 專案列次選單（WAI-ARIA menu button） ─────────────────────────
 
-let menuEl = null;
-let menuTrigger = null;
-let menuRun = null;
-let menuAn = null;
-let menuOpenedAt = 0;
-
 function menuItems(an) {
   const items = [{ key: 'pin', label: an.pinned ? '取消置頂' : '置頂', ico: an.pinned ? 'unpin' : 'pin' }];
   if (an.access === 'owner') {
     items.push({ key: 'share', label: '分享', ico: 'share', disabled: an.status !== 'completed', hint: '完成後才能分享' });
+    items.push({ key: 'copy', label: '新增副本', ico: 'copy' });
     items.push({ sep: true });
     items.push({ key: 'delete', label: '刪除', ico: 'delete', danger: true });
   }
   return items;
 }
 
-function ensureMenu() {
-  if (menuEl) return menuEl;
-  menuEl = document.createElement('div');
-  menuEl.className = 'menu';
-  menuEl.id = 'row-menu';
-  menuEl.setAttribute('role', 'menu');
-  menuEl.hidden = true;
-  document.body.append(menuEl);
-  menuEl.addEventListener('click', (e) => {
-    const item = e.target.closest('[role="menuitem"]');
-    if (!item || item.getAttribute('aria-disabled') === 'true') return;
-    const run = menuRun; const an = menuAn; const trigger = menuTrigger;
-    closeMenu({ restoreFocus: false });
-    run?.(item.dataset.key, an, trigger);
-  });
-  menuEl.addEventListener('keydown', (e) => {
-    const items = [...menuEl.querySelectorAll('[role="menuitem"]')];
-    const i = items.indexOf(document.activeElement);
-    const go = { ArrowDown: (i + 1) % items.length, ArrowUp: (i - 1 + items.length) % items.length, Home: 0, End: items.length - 1 }[e.key];
-    if (go != null) { e.preventDefault(); items[go].focus(); return; }
-    if (e.key === 'Escape') { e.preventDefault(); closeMenu(); }
-    if (e.key === 'Tab') closeMenu({ restoreFocus: false });
-  });
-  document.addEventListener('pointerdown', (e) => {
-    if (!menuEl.hidden && !menuEl.contains(e.target) && !e.target.closest('[data-action="row-menu"]')) closeMenu({ restoreFocus: false });
-  }, true);
-  // 捲動／縮放時關閉（固定定位的選單不會跟著按鈕移動）；剛開啟的 250ms 內忽略，避免瀏覽器為了露出按鈕而觸發的捲動把選單關掉
-  ['scroll', 'resize', 'hashchange'].forEach((t) => window.addEventListener(t, () => { if (t === 'hashchange' || Date.now() - menuOpenedAt > 250) closeMenu({ restoreFocus: false }); }, true));
-  return menuEl;
-}
-
+const closeMenu = closeRowMenu;
 function openMenu(trigger, an, run, focus = 'first') {
-  closeMenu({ restoreFocus: false });
-  const el = ensureMenu();
-  menuTrigger = trigger; menuRun = run; menuAn = an;
-  el.setAttribute('aria-label', `專案操作：${an.name}`);
-  el.innerHTML = menuItems(an).map((it) => it.sep ? '<div class="menu__sep" role="separator"></div>'
-    : html`<button type="button" role="menuitem" class="menu__item ${it.danger ? 'is-danger' : ''}" data-key="${it.key}" tabindex="-1" ${it.disabled ? raw('aria-disabled="true"') : ''}>
-        ${raw(icon(it.ico, { size: 16 }))}<span class="menu__text"><span>${it.label}</span>${it.disabled ? html`<span class="menu__hint">${it.hint}</span>` : ''}</span></button>`).join('');
-  el.hidden = false;
-  menuOpenedAt = Date.now();
-  trigger.setAttribute('aria-expanded', 'true');
-  // 定位：預設在按鈕下方、右緣對齊；空間不足時往上開
-  const r = trigger.getBoundingClientRect();
-  const w = el.offsetWidth; const h = el.offsetHeight;
-  const left = Math.max(8, Math.min(r.right - w, window.innerWidth - w - 8));
-  const top = r.bottom + 4 + h > window.innerHeight ? Math.max(8, r.top - h - 4) : r.bottom + 4;
-  el.style.left = `${left}px`; el.style.top = `${top}px`;
-  const items = el.querySelectorAll('[role="menuitem"]');
-  (focus === 'last' ? items[items.length - 1] : items[0]).focus({ preventScroll: true });
-}
-
-function closeMenu({ restoreFocus = true } = {}) {
-  if (!menuEl || menuEl.hidden) return;
-  menuEl.hidden = true;
-  menuTrigger?.setAttribute('aria-expanded', 'false');
-  if (restoreFocus) menuTrigger?.focus({ preventScroll: true });
-  menuTrigger = null;
+  openRowMenu(trigger, { label: `專案操作：${an.name}`, items: menuItems(an), ctx: an }, run, focus);
 }
 
 // 刪除確認（不可逆：必須確認；原生 <dialog> 提供焦點圈限與 Esc）
-function confirmDelete(an, doDelete, onCancel) {
-  return new Promise((resolve) => {
-    const dlg = document.createElement('dialog');
-    dlg.className = 'confirm-dialog';
-    dlg.setAttribute('aria-labelledby', 'cd-title');
-    dlg.setAttribute('aria-describedby', 'cd-desc');
-    dlg.innerHTML = html`
-      <h2 class="confirm-dialog__title" id="cd-title">刪除專案？</h2>
-      <p id="cd-desc" class="break">「${an.name}」的結果與分享對象都會移除，無法復原。</p>
-      <p class="field__error" id="cd-error" role="alert" hidden></p>
-      <div class="confirm-dialog__actions">
-        <button type="button" class="btn btn--secondary" data-cd="cancel">取消</button>
-        <button type="button" class="btn btn--danger" data-cd="ok">確認刪除</button>
-      </div>`;
-    document.body.append(dlg);
-    let busy = false; let done = false;
-    const finish = (deleted) => { if (done) return; done = true; dlg.remove(); if (!deleted) onCancel?.(); resolve(deleted); };
-    dlg.addEventListener('cancel', (e) => { if (busy) e.preventDefault(); });
-    dlg.addEventListener('close', () => finish(false));
-    dlg.querySelector('[data-cd="cancel"]').addEventListener('click', () => { if (!busy) dlg.close(); });
-    dlg.querySelector('[data-cd="ok"]').addEventListener('click', async (e) => {
-      if (busy) return;                       // 防重複送出
-      busy = true;
-      e.currentTarget.disabled = true;
-      e.currentTarget.textContent = '正在刪除…';
-      try {
-        await doDelete();
-        done = true; dlg.close(); dlg.remove(); resolve(true);
-      } catch (err) {
-        busy = false;
-        e.currentTarget.disabled = false;
-        e.currentTarget.textContent = '確認刪除';
-        const er = dlg.querySelector('#cd-error');
-        er.hidden = false; er.textContent = '刪除失敗：' + err.message;
-      }
-    });
-    dlg.showModal();
-    dlg.querySelector('[data-cd="cancel"]').focus();
-  });
+function confirmDeleteProject(an, doDelete, onCancel) {
+  return confirmDelete({ title: '刪除專案？', body: `「${an.name}」的結果與分享對象都會移除，無法復原。` }, doDelete, onCancel);
 }

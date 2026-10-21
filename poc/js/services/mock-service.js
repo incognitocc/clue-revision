@@ -2,7 +2,7 @@
 // 未來接 API 時，只要以相同的 async 介面替換本檔即可；UI 不直接碰 localStorage 的分析資料。
 // 所有「分析」都是模擬：不呼叫任何模型、不送出任何網路請求、不保存使用者檔案內容。
 
-import { DEMO_DATASET, USERS, CURRENT_USER, DIRECTORY, buildSeedAnalyses } from '../data/seed.js';
+import { DEMO_DATASET, USERS, CURRENT_USER, DIRECTORY, buildSeedAnalyses, buildSeedRequests } from '../data/seed.js';
 import { WATSONS } from '../data/watsons.js';
 
 const KEY = 'clue-poc:db:v3';   // v2：改用屈臣氏範本資料，舊的合成資料不沿用
@@ -19,12 +19,20 @@ const clone = (o) => structuredClone(o);
 function load() {
   try {
     const db = JSON.parse(localStorage.getItem(KEY));
-    if (db?.analyses) return db;
+    if (db?.analyses) {
+      db.requests ||= buildSeedRequests();
+      for (const an of db.analyses) {
+        an.clientType ||= 'existing';
+        an.industry ||= '零售與通路';
+        an.subIndustry ||= '藥妝與生活用品';
+      }
+      return db;
+    }
   } catch { /* fallthrough */ }
   return freshDb();
 }
 function freshDb() {
-  return { analyses: buildSeedAnalyses(), seq: 3000, usedKeys: {}, flags: { failNext: false } };
+  return { analyses: buildSeedAnalyses(), requests: buildSeedRequests(), seq: 3000, usedKeys: {}, flags: { failNext: false } };
 }
 let db = load();
 const save = () => localStorage.setItem(KEY, JSON.stringify(db));
@@ -75,6 +83,13 @@ export async function listAnalyses({ tab = 'mine', q = '', status = 'all', sort 
   // 置頂專案固定在最上方（各自維持原排序）
   rows = [...rows.filter((an) => an.pinned), ...rows.filter((an) => !an.pinned)];
   return { rows: clone(rows), totalInTab };
+}
+
+export async function countAnalyses() {
+  await wait(60);
+  const vis = db.analyses.filter(visible);
+  const mine = vis.filter((an) => an.ownerId === CURRENT_USER.id).length;
+  return { mine, shared: vis.length - mine };
 }
 
 /** 置頂：每位使用者各自的偏好；POC 只存在於本機示範資料 */
@@ -207,6 +222,52 @@ export async function deleteAnalysis(id) {
   if (!an) throw new ServiceError('NOT_FOUND', `找不到分析 ${id}`);
   if (an.access !== 'owner') throw new ServiceError('FORBIDDEN', '只有擁有者可以刪除專案');
   db.analyses = db.analyses.filter((x) => x.id !== id);
+  save();
+}
+
+// ───────────────────────── OpView 已索取資料（寄回的檔案清單；只示範，不連到 OpView） ─────────────────────────
+
+export async function countRequests() {
+  await wait(60);
+  return db.requests.length;
+}
+
+export async function listRequests({ q = '', sort = 'created-desc' } = {}) {
+  await wait();
+  const needle = q.trim().toLowerCase();
+  let rows = db.requests.slice();
+  const total = rows.length;
+  if (needle) rows = rows.filter((r) => `${r.client} ${r.keywords}`.toLowerCase().includes(needle));
+  rows.sort((x, y) => (sort === 'created-asc' ? 1 : -1) * x.createdAt.localeCompare(y.createdAt));
+  rows = [...rows.filter((r) => r.pinned), ...rows.filter((r) => !r.pinned)];
+  return { rows: clone(rows), total };
+}
+
+export async function addRequest(v) {
+  await wait(120);
+  const max = db.requests.reduce((n, r) => Math.max(n, Number(r.id.slice(3)) || 0), 1000);
+  const req = {
+    id: `RQ-${max + 1}`, client: v.client.trim(), keywords: v.keywords.trim(), from: v.from, to: v.to,
+    sources: clone(v.sources), advanced: v.advanced.trim(), createdAt: new Date().toISOString(), pinned: false, ownerId: CURRENT_USER.id,
+  };
+  db.requests.push(req);
+  save();
+  return clone(req);
+}
+
+export async function setRequestPinned(id, pinned) {
+  await wait(120);
+  const r = db.requests.find((x) => x.id === id);
+  if (!r) throw new ServiceError('NOT_FOUND', `找不到索取資料 ${id}`);
+  r.pinned = !!pinned;
+  save();
+  return r.pinned;
+}
+
+export async function deleteRequest(id) {
+  await wait(400);
+  if (!db.requests.some((x) => x.id === id)) throw new ServiceError('NOT_FOUND', `找不到索取資料 ${id}`);
+  db.requests = db.requests.filter((x) => x.id !== id);
   save();
 }
 

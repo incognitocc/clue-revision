@@ -35,6 +35,9 @@ function a(id, name, mode, status, owner, updatedAt, extra = {}) {
     name,
     client: '屈臣氏（測試資料）',
     brand: 'Watsons',
+    clientType: 'existing',
+    industry: '零售與通路',
+    subIndustry: '藥妝與生活用品',
     mode,
     status,
     ownerId: owner,
@@ -77,5 +80,22 @@ export function buildSeedAnalyses() {
       { access: 'viewer', sharedWith: [{ userId: 'u-lin', role: 'viewer' }] }),
     a('AN-2003', '客戶機密專案（無權限示範）', 'cluster', 'completed', 'u-chen', '2026-09-29T09:00:00+08:00',
       { access: 'none' }),
+  ];
+}
+
+/** OpView 已索取資料（OpView 寄回的檔案清單）示範資料 */
+export function buildSeedRequests() {
+  const r = (id, client, keywords, createdAt, extra = {}) => ({
+    id, client, keywords, from: '2026-04-01', to: '2026-09-30',
+    sources: { social: '全部社群網站', forum: '全部討論區' }, advanced: '',
+    createdAt: iso(createdAt), pinned: false, ownerId: 'u-lin', ...extra,
+  });
+  return [
+    r('RQ-1001', '屈臣氏', '(屈臣氏|Watsons|小屈)&(保養|彩妝|護膚)!廣告!代購', '2026-10-06T11:30:00+08:00'),
+    r('RQ-1002', '蘭蔻', '(蘭蔻|Lancome)&(粉底|精華|小黑瓶)', '2026-09-28T15:05:00+08:00'),
+    r('RQ-1003', '全聯福利中心', '(全聯|PXPay)&(支付|APP)|全支付!贈!送!活動', '2026-09-20T09:40:00+08:00'),
+    r('RQ-1004', '康是美', '(康是美|Cosmed)&(集點|優惠|折扣)', '2026-09-12T17:15:00+08:00', { pinned: true }),
+    r('RQ-1005', '寶雅', '(寶雅|Poya)&(開架|新品|聯名)!二手', '2026-08-30T10:00:00+08:00'),
+    r('RQ-1006', '【長關鍵字範例】美妝通路比較', '(屈臣氏|康是美|寶雅|大樂|美妝)&(通路|比價|促銷|集點|會員|門市|服務)', '2026-08-18T13:25:00+08:00'),
   ];
 }

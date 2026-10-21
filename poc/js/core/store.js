@@ -63,9 +63,11 @@ function newDraft() {
   };
 }
 
-let files = [];            // File[]（只在記憶體）
-let keywordFiles = [];     // File[]（與文章檔相同：只在記憶體）
 let draft = readJSON(DRAFT_KEY, null);
+// 「新增副本」沿用的原專案檔案只有中繼資料（檔名、大小），可跨重新整理保留；使用者自選的 File 物件只在記憶體
+const reusedList = (list) => (Array.isArray(list) ? list.map((f) => ({ name: f.name, size: f.size, reused: true })) : []);
+let files = reusedList(draft?.reusedFiles);            // File[]｜沿用檔
+let keywordFiles = reusedList(draft?.reusedKeywordFiles);
 if (draft) {
   draft = { ...newDraft(), ...draft, key: draft.key || newDraft().key, mode: draft.mode || 'cluster' };
   draft.source = 'local';
@@ -81,35 +83,46 @@ export const wizard = {
   get draft() { if (!draft) { draft = newDraft(); persistDraft(); } return draft; },
   get files() { return files; },
   get keywordFiles() { return keywordFiles; },
-  get lostFiles() { return lostFilesOnLoad && files.length === 0 && !!draft?.fileMeta?.length; },
-  get lostKeyword() { return lostFilesOnLoad && keywordFiles.length === 0 && !!draft?.keywordMeta?.length; },
+  get lostFiles() { return lostFilesOnLoad && files.length < (draft?.fileMeta?.length || 0); },
+  get lostKeyword() { return lostFilesOnLoad && keywordFiles.length < (draft?.keywordMeta?.length || 0); },
   update(patch) { Object.assign(this.draft, patch); persistDraft(); },
   setFiles(next) {
     files = next;
     this.draft.fileMeta = next.map((f) => ({ name: f.name, size: f.size }));
+    this.draft.reusedFiles = next.filter((f) => f.reused).map((f) => ({ name: f.name, size: f.size }));
     persistDraft();
   },
   setKeywordFiles(next) {
     keywordFiles = next;
     this.draft.keywordMeta = next.map((f) => ({ name: f.name, size: f.size }));
+    this.draft.reusedKeywordFiles = next.filter((f) => f.reused).map((f) => ({ name: f.name, size: f.size }));
     persistDraft();
   },
-  clearLostFileHints() { this.draft.fileMeta = files.map((f) => ({ name: f.name, size: f.size })); this.draft.keywordMeta = keywordFiles.map((f) => ({ name: f.name, size: f.size })); persistDraft(); },
+  clearLostFileHints() { this.setFiles(files); this.setKeywordFiles(keywordFiles); },
   reset() { draft = newDraft(); files = []; keywordFiles = []; persistDraft(); },
-  /** 由失敗分析「修改後重新建立」：帶入文字與設定，檔案需重選 */
-  prefillFrom(an) {
+  /** 帶入原專案的文字與設定。reuseFiles 為 true 時一併沿用原專案的檔案（不用重傳）；否則檔案需重選 */
+  prefillFrom(an, { name, reuseFiles = false } = {}) {
     this.reset();
     Object.assign(draft, {
-      name: `${sanitizeProjectName(an.name).slice(0, 50)}-重新建立`,
+      name: name ?? `${sanitizeProjectName(an.name).slice(0, 50)}-重新建立`,
+      clientType: an.clientType || 'existing',
       clientName: an.client,
+      taxId: an.taxId || '',
       industry: an.industry || '',
       subIndustry: an.subIndustry || '',
+      platform: an.dataset?.platform || 'opview',
       mode: an.mode || 'cluster',
+      researchQuestion: an.researchQuestion || '',
       source: 'local',
       analysisGroupCount: an.settings?.analysisGroupCount || 1,
       analysisGroups: Array.from({ length: 3 }, (_, i) => ({ ...newAnalysisGroup(), ...(an.settings?.analysisGroups?.[i] || {}) })),
       settings: { ...structuredClone(DEFAULT_SETTINGS), [an.mode]: structuredClone(an.settings) },
     });
+    if (reuseFiles) {
+      const kw = an.dataset?.keywordFiles?.length ? an.dataset.keywordFiles : an.dataset?.keywordFile ? [an.dataset.keywordFile] : [];
+      this.setFiles(reusedList(an.dataset?.files));
+      this.setKeywordFiles(reusedList(kw));
+    }
     persistDraft();
   },
 };

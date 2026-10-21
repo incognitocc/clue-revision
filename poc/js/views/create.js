@@ -2,7 +2,7 @@
 import { html, raw, on, $, $$, fmtSize, MB, announce } from '../core/dom.js';
 import { wizard, DEFAULT_SETTINGS } from '../core/store.js';
 import { navigate } from '../core/router.js';
-import { createAnalysis } from '../services/mock-service.js';
+import { createAnalysis, getArticles } from '../services/mock-service.js';
 import { INDUSTRIES, matchClients, PROJECT_NAME_RE } from '../data/industries.js';
 import { pageHead } from './ui.js';
 import { icon } from './icons.js';
@@ -11,15 +11,15 @@ import { track } from '../core/telemetry.js';
 // POC 設定：沿用現站觀察到的限制；正式規則待工程確認（前後端須一致）
 export const LIMITS = {
   ai: { maxFiles: 1, maxTotal: 15 * MB, label: '1 份 CSV／XLSX，15 MB 以內' },
-  cluster: { maxFiles: 4, maxTotal: 15 * MB, label: '最多 4 份 CSV／XLSX，合計 15 MB 以內' },
-  keyword: { maxFiles: 1, maxTotal: 10 * MB, label: '1 份 CSV／XLSX，10 MB 以內' },
+  cluster: { maxFiles: 1, maxTotal: 15 * MB, label: '1 份 CSV／XLSX，15 MB 以內' },
+  keyword: { maxFiles: 1, maxTotal: 15 * MB, label: '1 份 CSV／XLSX，15 MB 以內' },
 };
 const EXT_OK = /\.(csv|xlsx)$/i;
 const STEPS = ['專案基本資訊', '資料', '分析組數', '確認'];
 
 // ───────── 驗證 ─────────
 
-const NAME_ERR = '專案命名只能使用中英文字母、數字與 - _，不可有空白或其他符號。';
+const NAME_ERR = '專案命名只能使用中英文字母、數字與 - _ ( )，不可有空白或其他符號。';
 function validateStep1(d) {
   const e = {};
   const n = d.name.trim();
@@ -33,7 +33,9 @@ function validateStep1(d) {
 }
 
 /** 回傳每個檔案的檢查結果與整體錯誤（只檢查副檔名、數量、大小；不解析內容） */
-export function checkFiles(files, limit) {
+export const cleanState = (f) => (f.reused ? 'done' : f.cleanStatus || 'idle');
+
+export function checkFiles(files, limit, { requireClean = false } = {}) {
   const items = files.map((f) => {
     const errs = [];
     if (!EXT_OK.test(f.name)) errs.push({ type: 'format', msg: '格式不支援：只接受 .csv 或 .xlsx。請另存成這兩種格式後重新選擇。' });
@@ -47,12 +49,13 @@ export function checkFiles(files, limit) {
   if (limit.maxFiles > 1 && total > limit.maxTotal && items.every((i) => !i.errs.some((x) => x.type === 'size'))) {
     group.push({ type: 'total', msg: `合計 ${fmtSize(total)}，超過 ${limit.maxTotal / MB} MB 上限。請移除部分檔案。` });
   }
-  const ok = files.length > 0 && group.length === 0 && items.every((i) => i.errs.length === 0);
-  return { items, group, total, ok };
+  const needsClean = requireClean && files.some((f) => cleanState(f) !== 'done');
+  const ok = files.length > 0 && group.length === 0 && items.every((i) => i.errs.length === 0) && !needsClean;
+  return { items, group, total, ok, needsClean, requireClean };
 }
 
 function validateStep2(d) {
-  const art = checkFiles(wizard.files, LIMITS[d.mode]);
+  const art = checkFiles(wizard.files, LIMITS[d.mode], { requireClean: true });
   const kw = wizard.keywordFiles.length ? checkFiles(wizard.keywordFiles, LIMITS[d.mode]) : { ok: true };
   return { ok: art.ok && kw.ok, art, kw, missing: wizard.files.length === 0 };
 }
@@ -129,7 +132,7 @@ function step1(d) {
 
     <div class="field">
       <label class="field__label" for="f-name">專案命名 <span class="req" aria-hidden="true">*</span><span class="sr-only">（必填）</span></label>
-      <input id="f-name" name="name" class="input" type="text" value="${d.name}" maxlength="60" autocomplete="off" placeholder="輸入專案名稱(中英文大小寫字母與數字,避免使用 - _ 以外的符號與空白)" aria-describedby="name-error">
+      <input id="f-name" name="name" class="input" type="text" value="${d.name}" maxlength="60" autocomplete="off" placeholder="輸入專案名稱(中英文大小寫字母與數字,避免使用 - _ ( ) 以外的符號與空白)" aria-describedby="name-error">
       <p class="field__error" id="name-error" hidden></p>
     </div>
 
@@ -318,7 +321,7 @@ function localPanel(d) {
     <label class="dropzone" for="f-files" data-drop="article">
       ${raw(icon('upload', { size: 24 }))}
       <span class="dropzone__main">拖曳檔案到這裡，或<span class="dropzone__link">點選選擇檔案</span></span>
-      <span class="dropzone__hint">CSV、XLSX · ${lim.maxFiles > 1 ? `最多 ${lim.maxFiles} 份` : '1 份'}</span>
+      <span class="dropzone__hint">CSV、XLSX · 限定 1 份檔案</span>
     </label>
     <input id="f-files" class="visually-hidden-input" type="file" accept=".csv,.xlsx" ${lim.maxFiles > 1 ? 'multiple' : ''}>
     <div id="file-results" aria-live="polite"></div>
@@ -333,7 +336,7 @@ function keywordPanel(d) {
     <label class="dropzone" for="f-kw" data-drop="keyword">
       ${raw(icon('upload', { size: 24 }))}
       <span class="dropzone__main">拖曳檔案到這裡，或<span class="dropzone__link">點選選擇檔案</span></span>
-      <span class="dropzone__hint">CSV、XLSX · ${LIMITS[wizard.draft.mode].maxFiles > 1 ? `最多 ${LIMITS[wizard.draft.mode].maxFiles} 份` : '1 份'}</span>
+      <span class="dropzone__hint">CSV、XLSX · 限定 1 份檔案</span>
     </label>
     <input id="f-kw" class="visually-hidden-input" type="file" accept=".csv,.xlsx" ${LIMITS[wizard.draft.mode].maxFiles > 1 ? 'multiple' : ''}>
     <div id="kw-results" aria-live="polite"></div>
@@ -345,23 +348,88 @@ function fileList(check, kind) {
   return html`
     ${check.group.map((g) => html`<p class="field__error field__error--block" role="alert">${raw(icon('alert', { size: 14 }))}<span>${g.msg}</span></p>`)}
     <ul class="file-list">
-      ${check.items.map(({ file, errs }, i) => html`<li class="file-item ${errs.length ? 'file-item--error' : 'file-item--ok'}">
+      ${check.items.map(({ file, errs }, i) => {
+        const clean = check.requireClean ? cleanState(file) : 'done';
+        const tone = errs.length ? 'error' : clean === 'done' ? 'ok' : 'pending';
+        const status = errs.length ? html`${raw(icon('alert', { size: 14 }))}需修正`
+          : clean === 'done' ? html`${raw(icon('check', { size: 14 }))}${file.reused ? '沿用原專案檔案' : '通過基本檢查'}`
+          : clean === 'running' ? html`<span class="pulse" aria-hidden="true"></span>資料清理中…`
+          : html`${raw(icon('clock', { size: 14 }))}待資料清理`;
+        const cleanBtn = !check.requireClean || errs.length ? ''
+          : clean === 'done' ? html`<button type="button" class="btn btn--secondary btn--sm" data-action="view-clean" data-index="${i}">檢視清理後檔案</button>`
+          : clean === 'running' ? html`<button type="button" class="btn btn--secondary btn--sm" disabled aria-busy="true">資料清理</button>`
+          : html`<button type="button" class="btn btn--secondary btn--sm" data-action="clean-file" data-index="${i}">資料清理</button>`;
+        return html`<li class="file-item file-item--${tone}">
         <span class="file-item__type">${(file.name.split('.').pop() || '?').slice(0, 4).toUpperCase()}</span>
         <span class="file-item__main">
           <span class="file-item__name">${file.name}</span>
           <span class="file-item__meta">${fmtSize(file.size)}</span>
           ${errs.map((er) => html`<span class="file-item__error">${er.msg}</span>`)}
         </span>
-        <span class="file-item__status">${errs.length ? html`${raw(icon('alert', { size: 14 }))}需修正` : html`${raw(icon('check', { size: 14 }))}通過基本檢查`}</span>
+        <span class="file-item__state"><span class="file-item__status">${status}</span>${cleanBtn}</span>
         <button type="button" class="icon-btn" data-action="remove-file" data-kind="${kind}" data-index="${i}" aria-label="移除 ${file.name}">${raw(icon('close', { size: 16 }))}</button>
-      </li>`)}
+      </li>`;
+      })}
     </ul>`;
+}
+
+const CLEAN_MS = 2200;   // 模擬後台資料清洗時間
+const CLEAN_STEPS = ['移除重複的貼文', '移除空白或沒有內文的資料', '統一日期與欄位格式', '清除多餘的網址與特殊符號'];
+const cleanedName = (name) => name.replace(/\.[^.]+$/, '') + '_cleaned.csv';
+
+const csvCell = (v) => { const t = String(v ?? ''); return /[",\n\r]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
+
+function saveCsv(name, text) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\uFEFF' + text], { type: 'text/csv;charset=utf-8' }));
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+// 清理後檔案：上傳的是 CSV 就在瀏覽器內去除空白列與重複列；xlsx 或沿用的檔案讀不到內容，改以範本文章資料產生
+async function downloadCleaned(file) {
+  const name = cleanedName(file.name);
+  if (typeof file.text === 'function' && /\.csv$/i.test(file.name)) {
+    const seen = new Set();
+    const rows = (await file.text()).replace(/^\uFEFF/, '').split(/\r?\n/).filter((l) => {
+      if (!l.trim() || seen.has(l)) return false;
+      seen.add(l); return true;
+    });
+    saveCsv(name, rows.join('\r\n'));
+  } else {
+    const list = await getArticles();
+    saveCsv(name, ['文章ID,標題,內容,來源,發布時間', ...list.map((a) => [a.id, a.title, a.body, a.source, a.publishedAt].map(csvCell).join(','))].join('\r\n'));
+  }
+}
+
+function viewCleanedFile(file, onClose) {
+  const dlg = document.createElement('dialog');
+  dlg.className = 'confirm-dialog confirm-dialog--closable';
+  dlg.setAttribute('aria-labelledby', 'cf-title');
+  dlg.innerHTML = html`
+    <button type="button" class="drawer__close icon-btn" data-cf="close" aria-label="關閉">${raw(icon('close', { size: 22 }))}</button>
+    <h2 class="confirm-dialog__title" id="cf-title">清理後檔案</h2>
+    <p class="break"><strong>${cleanedName(file.name)}</strong></p>
+    <p class="muted">由「${file.name}」清理而來，已完成以下處理：</p>
+    <ul class="clean-steps">${CLEAN_STEPS.map((s) => html`<li>${raw(icon('check', { size: 14 }))}<span>${s}</span></li>`)}</ul>
+    <button type="button" class="btn btn--primary btn--block" data-cf="download">${raw(icon('download', { size: 16 }))}下載檔案</button>`;
+  document.body.append(dlg);
+  dlg.addEventListener('close', () => { dlg.remove(); onClose?.(); });
+  dlg.querySelector('[data-cf="close"]').addEventListener('click', () => dlg.close());
+  dlg.querySelector('[data-cf="download"]').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    try { await downloadCleaned(file); track('cleaned_file_downloaded', {}); } finally { btn.disabled = false; }
+  });
+  dlg.showModal();
+  dlg.querySelector('[data-cf="download"]').focus();
 }
 
 function bindStep2(view, form) {
   const d = wizard.draft;
   const renderLists = () => {
-    if ($('#file-results', view)) $('#file-results', view).innerHTML = fileList(checkFiles(wizard.files, LIMITS[d.mode]), 'article');
+    if ($('#file-results', view)) $('#file-results', view).innerHTML = fileList(checkFiles(wizard.files, LIMITS[d.mode], { requireClean: true }), 'article') + (wizard.files.some((f) => f.reused) ? html`<p class="field__hint">已沿用原專案的檔案，不需要重新上傳。要更換時，先移除再選擇新檔案。</p>` : '');
     if ($('#kw-results', view)) $('#kw-results', view).innerHTML = wizard.keywordFiles.length ? fileList(checkFiles(wizard.keywordFiles, LIMITS[d.mode]), 'keyword') : '';
   };
   const bindInputs = () => {
@@ -405,6 +473,27 @@ function bindStep2(view, form) {
     announce(res.ok ? '關鍵字檔通過基本檢查' : '關鍵字檔有需要修正的問題，請查看清單');
   };
   on(view, 'change', '#f-kw', (e) => { const picked = [...e.target.files]; e.target.value = ''; addKeywordFiles(picked); });
+  on(view, 'click', '[data-action="clean-file"]', (e, el) => {
+    const file = wizard.files[Number(el.dataset.index)];
+    if (!file || cleanState(file) !== 'idle') return;
+    file.cleanStatus = 'running';
+    renderLists();
+    announce('資料清理中');
+    $('[aria-busy="true"]', view)?.focus();
+    setTimeout(() => {
+      file.cleanStatus = 'done';
+      track('article_cleaning_completed', { fileCount: wizard.files.length });
+      if (!view.isConnected || !$('#file-results', view)) return;
+      renderLists();
+      announce('資料清理完成，檔案通過基本檢查');
+      const i = wizard.files.indexOf(file);
+      $(`[data-action="view-clean"][data-index="${i}"]`, view)?.focus();
+    }, CLEAN_MS);
+  });
+  on(view, 'click', '[data-action="view-clean"]', (e, el) => {
+    const file = wizard.files[Number(el.dataset.index)];
+    if (file) viewCleanedFile(file, () => el.isConnected && el.focus());
+  });
   on(view, 'click', '[data-action="remove-file"]', (e, el) => {
     const idx = Number(el.dataset.index);
     if (el.dataset.kind === 'keyword') wizard.setKeywordFiles(wizard.keywordFiles.filter((_, i) => i !== idx));
@@ -432,8 +521,11 @@ function bindStep2(view, form) {
         $('#file-results', view).innerHTML = html`<p class="field__error field__error--block" role="alert">${raw(icon('alert', { size: 14 }))}<span>請選擇至少 1 份文章檔。</span></p>`;
       } else {
         renderLists();
+        if (v.art.needsClean && !v.art.items.some((i) => i.errs.length)) {
+          $('#file-results', view).insertAdjacentHTML('afterbegin', html`<p class="field__error field__error--block" role="alert">${raw(icon('alert', { size: 14 }))}<span>文章檔需要先完成資料清理，才能進行下一步。</span></p>`);
+        }
       }
-      ($('.file-item--error [data-action="remove-file"]', view) || $('.dropzone', view))?.focus();
+      ($('.file-item--error [data-action="remove-file"]', view) || $('[data-action="clean-file"]', view) || $('.dropzone', view))?.focus();
       announce('資料有需要修正的地方');
       return;
     }
@@ -458,7 +550,8 @@ function validateStep3(d) {
   for (let i = 0; i < count; i += 1) {
     if (!d.analysisGroups?.[i]?.clusterCount) missing.push(i);
   }
-  return { ok: missing.length === 0, missing };
+  const topic = !String(d.researchQuestion || '').trim();
+  return { ok: missing.length === 0 && !topic, missing, topic };
 }
 
 function analysisSelect(name, row, value, options, { required = false } = {}) {
@@ -498,7 +591,16 @@ function step3(d) {
         <span>組次</span><span>分析內容</span><span><span class="req">*</span>分群數量</span><span>文章情緒</span><span>關鍵字詞性</span>
       </div>
       <div id="analysis-group-rows">${raw(analysisRows(d))}</div>
-    </div>`;
+    </div>
+    <section class="insight-topic" aria-labelledby="insight-topic-title">
+      <h2 class="wizard-card__title wizard-card__title--brand" id="insight-topic-title">AI 話題洞察</h2>
+      <p class="wizard-card__desc">輸入想請 AI 洞察的主題。<span class="req" aria-hidden="true">*</span> 為必填選項</p>
+      <div class="insight-topic__field">
+        <label class="field__label" for="f-topic">你想要分析的主題 <span class="req" aria-hidden="true">*</span><span class="sr-only">（必填）</span></label>
+        <textarea id="f-topic" class="textarea" rows="3" maxlength="500" aria-describedby="e-topic">${d.researchQuestion || ''}</textarea>
+      </div>
+      <p class="field__error" id="e-topic" hidden></p>
+    </section>`;
 }
 
 function bindStep3(view, form) {
@@ -517,12 +619,26 @@ function bindStep3(view, form) {
       $(`#group-${el.dataset.row}-error`, view).hidden = true;
     }
   });
+  const topicError = (msg) => {
+    const el = $('#e-topic', view);
+    el.hidden = !msg;
+    el.innerHTML = msg ? `${icon('alert', { size: 14 })}<span></span>` : '';
+    if (msg) el.lastChild.textContent = msg;
+    const input = $('#f-topic', view);
+    if (msg) input.setAttribute('aria-invalid', 'true'); else input.removeAttribute('aria-invalid');
+  };
+  $('#f-topic', view).addEventListener('input', (e) => {
+    wizard.update({ researchQuestion: e.target.value });
+    if (e.target.value.trim()) topicError('');
+  });
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const result = validateStep3(wizard.draft);
+    topicError(result.topic ? '請輸入你想要分析的主題。' : '');
     $$('.analysis-group__error', view).forEach((el) => { el.hidden = true; el.textContent = ''; });
     $$('[data-group-field="clusterCount"]', view).forEach((el) => el.removeAttribute('aria-invalid'));
     if (!result.ok) {
+      if (!result.missing.length) { $('#f-topic', view).focus(); announce('請輸入你想要分析的主題'); return; }
       result.missing.forEach((i) => {
         const error = $(`#group-${i}-error`, view);
         error.textContent = `請選擇第 ${i + 1} 組的分群數量。`;
@@ -561,7 +677,7 @@ function step4(d) {
       <dl class="summary__list">
         <div><dt>資料來源平台</dt><dd>${PLATFORMS[d.platform || 'opview'].label}</dd></div>
         <div><dt>檔案</dt><dd>本機上傳檔案</dd></div>
-        <div><dt>文章檔</dt><dd><ul class="plain-list">${files.map((f) => html`<li class="break">${f.name}${f.size != null ? html` <span class="muted">· ${fmtSize(f.size)}</span>` : ''}</li>`)}</ul></dd></div>
+        <div><dt>文章檔</dt><dd><ul class="plain-list">${files.map((f) => html`<li class="break">${f.name}${f.size != null ? html` <span class="muted">· ${fmtSize(f.size)} · 已完成資料清理</span>` : ''}</li>`)}</ul></dd></div>
         <div><dt>自訂關鍵字</dt><dd>${kwFiles.length ? html`<ul class="plain-list">${kwFiles.map((f) => html`<li class="break">${f.name} <span class="muted">· ${fmtSize(f.size)}</span></li>`)}</ul>` : '未提供（選填）'}</dd></div>
       </dl>
     </section>
@@ -578,6 +694,11 @@ function step4(d) {
           <div><dt>關鍵字詞性</dt><dd>${ANALYSIS_LABELS.keywordPos[group.keywordPos] || '不設定'}</dd></div>
         </dl>`) }
       </div>
+    </section>
+
+    <section class="summary" aria-labelledby="sum-topic">
+      <div class="summary__head"><h3 id="sum-topic" class="summary__title">AI 話題洞察</h3><a href="#/create/3" class="text-link">修改</a></div>
+      <dl class="summary__list"><div><dt>你想要分析的主題</dt><dd class="break pre-wrap">${d.researchQuestion}</dd></div></dl>
     </section>
 
     <section class="summary" aria-labelledby="sum-share">
@@ -602,7 +723,7 @@ function bindStep4(view, form) {
     $('#submit-status', view).textContent = '正在建立分析，請稍候。';
     try {
       const payload = {
-        name: d.name.trim(), clientName: d.clientName, clientType: d.clientType, taxId: d.clientType === 'new' ? d.taxId : '', industry: d.industry, subIndustry: d.subIndustry, mode: d.mode, researchQuestion: '',
+        name: d.name.trim(), clientName: d.clientName, clientType: d.clientType, taxId: d.clientType === 'new' ? d.taxId : '', industry: d.industry, subIndustry: d.subIndustry, mode: d.mode, researchQuestion: (d.researchQuestion || '').trim(),
         source: d.source,
         platform: d.platform || 'opview',
         files: wizard.files.map((f) => ({ name: f.name, size: f.size })),
