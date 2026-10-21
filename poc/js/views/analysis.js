@@ -424,12 +424,12 @@ function insightTab(an, res) {
     </div>
     <p class="muted">互動 = 按讚／觀看 ＋ 分享／轉貼 ＋ 顯示留言數（OpView 欄位加總）。</p>
     <div class="grid-2">
-      <div><h4 class="report-sub">話題聲量排行（主文數）</h4>
+      <div class="chart-card"><h4 class="report-sub">話題聲量排行（主文數）</h4>
         ${hBars(byCount.map((r) => ({ label: `話題 ${r.id}`, topic: r.id, value: r.count })), { label: '話題聲量排行' })}</div>
-      <div><h4 class="report-sub">話題互動排行（平均互動）</h4>
+      <div class="chart-card"><h4 class="report-sub">話題互動排行（平均互動）</h4>
         ${hBars(byEng.map((r) => ({ label: `話題 ${r.id}`, topic: r.id, value: r.avgEngagement })), { label: '話題互動排行' })}</div>
     </div>
-    <h4 class="report-sub">話題情緒分析</h4>
+    <div class="chart-card"><h4 class="report-sub">話題情緒分析</h4>
     <div class="table-wrap"><table class="table" data-sort-table>
       <caption class="sr-only">話題情緒分析</caption>
       <thead><tr>${sortTh(0, '話題')}${sortTh(1, '主文數', 'num', 'num')}${sortTh(2, '平均互動', 'num', 'num')}${sortTh(3, '正面率', 'num', 'num')}${sortTh(4, '負面率', 'num', 'num')}<th scope="col">情緒傾向</th></tr></thead>
@@ -438,49 +438,49 @@ function insightTab(an, res) {
         <td class="num" data-label="平均互動" data-v="${r.avgEngagement}">${fmtN(r.avgEngagement)}</td>
         <td class="num" data-label="正面率" data-v="${r.posRate}">${p1(r.posRate)}</td><td class="num" data-label="負面率" data-v="${r.negRate}">${p1(r.negRate)}</td>
         <td data-label="情緒傾向"><span class="status-tag status-tag--${cls}">${t}</span></td></tr>`; })}</tbody>
-    </table></div>
+    </table></div></div>
     <p class="muted">情緒傾向規則：正面率 ≥ 負面率 × 2 為偏正面；負面率 > 正面率為偏負面；其餘為中立。情緒標記取自 OpView。</p>
 
-    <h4 class="report-sub">每日聲量趨勢</h4>
+    <div class="chart-card"><h4 class="report-sub">每日聲量趨勢</h4>
     ${lineChart(R.daily.map((d) => d.date), [
       { label: '總聲量', values: R.daily.map((d) => d.total), cls: 'total' },
       { label: '正面', values: R.daily.map((d) => d.pos), cls: 'pos' },
       { label: '負面', values: R.daily.map((d) => d.neg), cls: 'neg' },
     ], { label: `每日主文數，2022/10/01 至 12/31。最高單日為 ${fmtDate(topDay.date)}，共 ${topDay.total} 篇。` })}
-    <p class="muted">最高單日：${fmtDate(topDay.date)}（${topDay.total} 篇）；期間日平均 ${(k.totalPosts / R.daily.length).toFixed(1)} 篇。</p>
+    <p class="muted">最高單日：${fmtDate(topDay.date)}（${topDay.total} 篇）；期間日平均 ${(k.totalPosts / R.daily.length).toFixed(1)} 篇。</p></div>
 
-    <h4 class="report-sub">聲量高峰時間軸（前 5 日）</h4>
+    <div class="chart-card"><h4 class="report-sub">聲量高峰時間軸（前 5 日）</h4>
     <ol class="timeline">${R.peaks.map((p) => html`<li class="timeline__item">
       <p class="timeline__date"><span class="num">${fmtDate(p.date)}</span><span class="muted num">${p.total} 篇 · 正面 ${p.pos} · 負面 ${p.neg}</span></p>
       <p class="timeline__chips">${p.clusters.map(([l, n]) => html`<span class="tag">${String(l).replace('未分群', '未歸入話題').replace('分群', '話題')} ${n}</span>`)}</p>
       <p class="timeline__detail">當日互動最高：${p.topPost.title.slice(0, 60)}<span class="muted num">（互動 ${fmtN(p.topPost.engagement)}）</span></p>
-    </li>`)}</ol>
+    </li>`)}</ol></div>
   </section>
 
   <section class="report-sec" aria-labelledby="r3">
     <h3 id="r3" class="report-sec__title"><span class="report-sec__num">3</span>社群平台分析</h3>
     <div class="grid-2">
-      <div><h4 class="report-sub">各平台聲量占比</h4>
+      <div class="chart-card"><h4 class="report-sub">各平台聲量占比</h4>
         ${hBars(R.platforms.map((p) => ({ label: p.label, value: p.count, display: `${fmtN(p.count)} · ${pct1(p.count, k.totalPosts)}` })), { label: '各平台聲量占比' })}</div>
-      <div><h4 class="report-sub">平台平均按讚／觀看</h4>
+      <div class="chart-card"><h4 class="report-sub">平台平均按讚／觀看</h4>
         ${hBars(R.platforms.map((p) => ({ label: p.label, value: p.avgLike })), { label: '平台平均按讚／觀看' })}</div>
     </div>
-    <div class="table-wrap"><table class="table"><caption class="sr-only">平台明細</caption>
+    <div class="chart-card"><div class="table-wrap"><table class="table"><caption class="sr-only">平台明細</caption>
       <thead><tr><th scope="col">平台</th><th scope="col" class="num">主文數</th><th scope="col" class="num">平均按讚／觀看</th><th scope="col" class="num">平均留言</th><th scope="col" class="num">正面率</th></tr></thead>
       <tbody>${R.platforms.map((p) => html`<tr><th scope="row">${p.label}</th><td class="num" data-label="主文數">${fmtN(p.count)}</td><td class="num" data-label="平均按讚／觀看">${fmtN(p.avgLike)}</td><td class="num" data-label="平均留言">${p.avgComment}</td><td class="num" data-label="正面率">${p.posRate}%</td></tr>`)}</tbody>
-    </table></div>
+    </table></div></div>
     <p class="highlight-line"><strong>平台觀察：</strong>${R.platforms[0].label} 貢獻 ${pct1(R.platforms[0].count, k.totalPosts)} 的主文，平均按讚／觀看 ${fmtN(R.platforms[0].avgLike)}；${R.platforms[1].label} 占 ${pct1(R.platforms[1].count, k.totalPosts)}，平均按讚／觀看 ${fmtN(R.platforms[1].avgLike)}。</p>
   </section>
 
   <section class="report-sec" aria-labelledby="r4">
     <h3 id="r4" class="report-sec__title"><span class="report-sec__num">4</span>發布時段分析</h3>
-    <h4 class="report-sub">貼文熱力圖（星期 × 小時，台北時間）</h4>
+    <div class="chart-card"><h4 class="report-sub">貼文熱力圖（星期 × 小時，台北時間）</h4>
     <div class="scroll-x" tabindex="0" role="region" aria-label="貼文熱力圖，可左右捲動">
       ${heatTable(R.heatmap, WD, Array.from({ length: 24 }, (_, h) => h), { caption: '各星期與小時的主文數' })}
-    </div>
+    </div></div>
     <div class="chart-stack">
-      <div><h4 class="report-sub">每小時聲量</h4>${columnsPlain(R.hourly.map((v, h) => ({ label: `${h}`, value: v, tip: `${h}:00 · ${v} 篇`, strong: h === peakHour })), '每小時主文數')}</div>
-      <div><h4 class="report-sub">星期聲量</h4>${columnsPlain(R.weekday.map((v, i) => ({ label: WD[i], value: v, tip: `${WD[i]} · ${v} 篇`, strong: i === wdMax })), '各星期主文數')}</div>
+      <div class="chart-card"><h4 class="report-sub">每小時聲量</h4>${columnsPlain(R.hourly.map((v, h) => ({ label: `${h}`, value: v, tip: `${h}:00 · ${v} 篇`, strong: h === peakHour })), '每小時主文數')}</div>
+      <div class="chart-card"><h4 class="report-sub">星期聲量</h4>${columnsPlain(R.weekday.map((v, i) => ({ label: WD[i], value: v, tip: `${WD[i]} · ${v} 篇`, strong: i === wdMax })), '各星期主文數')}</div>
     </div>
     <p class="highlight-line"><strong>時段觀察：</strong>發文高峰在 ${peakHour}:00（${R.hourly[peakHour]} 篇）；${WD[wdMax]}聲量最高（${R.weekday[wdMax]} 篇），${WD[wdMin]}最低（${R.weekday[wdMin]} 篇）。</p>
   </section>`;

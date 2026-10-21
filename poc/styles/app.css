@@ -722,6 +722,17 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: v
 .kpi__label { font-size: var(--ds-font-size-body); color: var(--ds-color-text-secondary); }
 .kpi__value { font-family: var(--ds-font-heading); font-size: var(--ds-font-size-h1); font-weight: var(--ds-font-weight-bold); color: var(--ds-color-action); }
 .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ds-space-l); }
+.chart-card {
+  min-width: 0;
+  padding: var(--ds-space-l);
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-l);
+  background: var(--ds-color-bg-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-s);
+}
+.chart-card > .report-sub { margin-top: 0; }
 .timeline { display: flex; flex-direction: column; gap: var(--ds-space-m); padding-left: var(--ds-space-l); border-left: 1px solid var(--ds-color-border-control); }
 .timeline__item { position: relative; }
 .timeline__item::before { content: ""; position: absolute; left: calc(-1 * var(--ds-space-l) - 5px); top: 8px; inline-size: 9px; block-size: 9px; border-radius: var(--ds-radius-full); background: var(--poc-chart-data-strong); }
