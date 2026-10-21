@@ -115,8 +115,8 @@ function renderFailed(view, an, root) {
       <p class="state-panel__body">專案名稱、資料資訊與設定都已保留。你可以直接重新執行，或修改設定後重新建立。</p>
       ${isOwner ? html`
         <div class="state-block__actions">
-          <button type="button" class="btn btn--primary" data-action="retry">${raw(icon('refresh', { size: 16 }))}<span>重新執行</span></button>
           <button type="button" class="btn btn--secondary" data-action="edit">修改設定後重新建立</button>
+          <button type="button" class="btn btn--primary" data-action="retry">${raw(icon('refresh', { size: 16 }))}<span>重新執行</span></button>
         </div>
         <p class="field__hint">POC 中「重新執行」會沿用同一筆分析並覆蓋結果；正式版是否新增工作、覆蓋結果或產生成本待確認。仍無法完成時，請聯絡 Clue 管理員。</p>`
       : html`<p class="state-panel__body">你是檢視者，無法重新執行。請聯絡擁有者 ${ownerName(an)}。</p>`}
@@ -188,8 +188,8 @@ async function renderResults(view, an, query) {
         <span class="meta-item">建立者 ${ownerName(an)}</span>
       </div>`,
       actions: html`
-        <button type="button" class="btn btn--secondary" data-action="download">${raw(icon('download', { size: 14 }))}<span>下載資料</span></button>
-        <button type="button" class="btn btn--secondary" data-action="share" aria-haspopup="dialog">${raw(icon('share', { size: 16 }))}<span>分享</span></button>`,
+        <button type="button" class="btn btn--secondary" data-action="share" aria-haspopup="dialog">${raw(icon('share', { size: 16 }))}<span>分享</span></button>
+        <button type="button" class="btn btn--secondary" data-action="download">${raw(icon('download', { size: 14 }))}<span>下載資料</span></button>`,
     })}
     ${!isOwner ? readOnlyNotice(ownerName(an)) : ''}
 
@@ -202,16 +202,16 @@ async function renderResults(view, an, query) {
 
     <section class="project-actions" aria-label="專案操作">
       <div class="project-actions__main">
-        <button type="button" class="btn btn--primary btn--xl" data-action="download">${raw(icon('download', { size: 16 }))}<span>下載資料</span></button>
         <button type="button" class="btn btn--secondary btn--xl" data-action="share" aria-haspopup="dialog">${raw(icon('share', { size: 18 }))}<span>分享</span></button>
+        <button type="button" class="btn btn--primary btn--xl" data-action="download">${raw(icon('download', { size: 16 }))}<span>下載資料</span></button>
       </div>
       ${isOwner ? html`<button type="button" class="btn btn--danger-ghost" data-action="delete" aria-expanded="false" aria-controls="delete-confirm">${raw(icon('delete', { size: 14 }))}<span>刪除專案</span></button>` : ''}
       <div id="delete-confirm" class="delete-confirm" hidden role="alertdialog" aria-labelledby="del-title" aria-describedby="del-desc" tabindex="-1">
         <h3 id="del-title" class="subpanel__title">確定刪除「${an.name}」？</h3>
         <p id="del-desc">刪除後，這份專案的結果與分享對象都會移除，無法復原。POC 只會從本機示範資料移除；可在 POC 情境面板重設。</p>
         <div class="notice__actions">
-          <button type="button" class="btn btn--danger" data-action="confirm-delete">確認刪除</button>
           <button type="button" class="btn btn--secondary" data-action="cancel-delete">取消</button>
+          <button type="button" class="btn btn--danger" data-action="confirm-delete">確認刪除</button>
         </div>
       </div>
       <p class="form-status" id="action-status" role="status"></p>

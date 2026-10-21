@@ -251,9 +251,9 @@ function showSubmitted(view, v) {
         <li>回到「創建新檔 › 資料」，選擇「上傳本機檔案」使用這份資料。</li>
       </ol>
       <div class="state-block__actions">
-        <a class="btn btn--primary" href="#/create/1">前往創建新檔</a>
         <button type="button" class="btn btn--secondary" data-action="edit">修改條件</button>
         <button type="button" class="btn btn--ghost" data-action="new">新增另一筆索取</button>
+        <a class="btn btn--primary" href="#/create/1">前往創建新檔</a>
       </div>
     </section>`;
   $('.page-title', view).focus({ preventScroll: true });

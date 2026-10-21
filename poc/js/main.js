@@ -58,7 +58,7 @@ fallback(withShell('none', () => {
 
 function updateTitle() {
   const h1 = $('.page-title', root);
-  document.title = `${h1 ? (h1.dataset.docTitle || h1.textContent.trim()) + ' · ' : ''}Clue（POC）`;
+  document.title = `Clue - ${h1 ? `${h1.dataset.docTitle || h1.textContent.trim()} · ` : ''}POC`;
   // 換頁後把焦點放在標題，螢幕閱讀器會讀出新頁面
   if (h1 && document.activeElement === document.body) h1.focus({ preventScroll: true });
 }
